@@ -1,0 +1,157 @@
+/* parser.cup - TestLang++ Parser Grammar */
+import AST.*;
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code {:
+    // Called automatically by CUP when a syntax error occurs
+    public void syntax_error(Symbol cur_token) {
+        report_error("Syntax error at line " + (cur_token.left + 1) +
+                     ", near token '" + cur_token.value + "'", null);
+    }
+
+    public void report_error(String message, Object info) {
+        System.err.println(message);
+    }
+:};
+
+/* ------------------------ Terminals (tokens from lexer) ------------------------ */
+terminal String IDENT, STRING, NUMBER;
+terminal CONFIG, BASE_URL, HEADER, LET, TEST;
+terminal GET, POST, PUT, DELETE;
+terminal EXPECT, STATUS, BODY, CONTAINS;
+terminal LBRACE, RBRACE, SEMI, EQUALS;
+
+/* ------------------------ Non-terminals ------------------------ */
+non terminal Program program;
+non terminal ConfigBlock config_block_opt;
+non terminal List<LetStmt> let_stmts;
+non terminal LetStmt let_stmt;
+non terminal List<TestBlock> test_blocks;
+non terminal TestBlock test_block;
+non terminal List<Statement> statements;
+non terminal Statement statement;
+non terminal RequestStmt request_stmt;
+non terminal List<HeaderStmt> header_stmts_opt;
+non terminal HeaderStmt header_stmt;
+non terminal BodyStmt body_stmt_opt;
+non terminal AssertStmt assertion;
+non terminal List<ConfigItem> config_items;
+non terminal ConfigItem config_item;
+
+/* ------------------------ Grammar Rules ------------------------ */
+
+program ::=
+    config_block_opt:c let_stmts:l test_blocks:t
+    {: RESULT = new Program(c, l, t); :}
+    ;
+
+config_block_opt ::=
+    CONFIG LBRACE config_items:items RBRACE
+    {: RESULT = new ConfigBlock(items); :}
+    | /* empty */
+    {: RESULT = null; :}
+    ;
+
+config_items ::=
+    config_items:list config_item:item
+    {: list.add(item); RESULT = list; :}
+    | /* empty */
+    {: RESULT = new ArrayList<ConfigItem>(); :}
+    ;
+
+config_item ::=
+    BASE_URL EQUALS STRING:url SEMI
+    {: RESULT = new ConfigItem("base_url", url); :}
+    | HEADER STRING:key EQUALS STRING:val SEMI
+    {: RESULT = new ConfigItem("header", key, val); :}
+    ;
+
+let_stmts ::=
+    let_stmts:list let_stmt:stmt
+    {: list.add(stmt); RESULT = list; :}
+    | /* empty */
+    {: RESULT = new ArrayList<LetStmt>(); :}
+    ;
+
+let_stmt ::=
+    LET IDENT:name EQUALS STRING:val SEMI
+    {: RESULT = new LetStmt(name, val, false); :}
+    | LET IDENT:name EQUALS NUMBER:val SEMI
+    {: RESULT = new LetStmt(name, val, true); :}
+    ;
+
+test_blocks ::=
+    test_blocks:list test_block:block
+    {: list.add(block); RESULT = list; :}
+    | test_block:block
+    {: List<TestBlock> list = new ArrayList<>();
+       list.add(block);
+       RESULT = list; :}
+    ;
+
+test_block ::=
+    TEST IDENT:name LBRACE statements:stmts RBRACE
+    {: RESULT = new TestBlock(name, stmts); :}
+    ;
+
+statements ::=
+    statements:list statement:stmt
+    {: list.add(stmt); RESULT = list; :}
+    | statement:stmt
+    {: List<Statement> list = new ArrayList<>();
+       list.add(stmt);
+       RESULT = list; :}
+    ;
+
+statement ::=
+    request_stmt:req
+    {: RESULT = req; :}
+    | assertion:ast
+    {: RESULT = ast; :}
+    ;
+
+request_stmt ::=
+    GET STRING:path SEMI
+    {: RESULT = new RequestStmt("GET", path, new ArrayList<>(), null); :}
+    | DELETE STRING:path SEMI
+    {: RESULT = new RequestStmt("DELETE", path, new ArrayList<>(), null); :}
+    | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+    {: RESULT = new RequestStmt("POST", path, headers, body); :}
+    | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+    {: RESULT = new RequestStmt("PUT", path, headers, body); :}
+    | POST STRING:path SEMI
+    {: RESULT = new RequestStmt("POST", path, new ArrayList<>(), null); :}
+    | PUT STRING:path SEMI
+    {: RESULT = new RequestStmt("PUT", path, new ArrayList<>(), null); :}
+    ;
+
+header_stmts_opt ::=
+    header_stmts_opt:list header_stmt:stmt
+    {: list.add(stmt); RESULT = list; :}
+    | /* empty */
+    {: RESULT = new ArrayList<HeaderStmt>(); :}
+    ;
+
+header_stmt ::=
+    HEADER STRING:key EQUALS STRING:val SEMI
+    {: RESULT = new HeaderStmt(key, val); :}
+    ;
+
+body_stmt_opt ::=
+    BODY EQUALS STRING:content SEMI
+    {: RESULT = new BodyStmt(content); :}
+    | /* empty */
+    {: RESULT = null; :}
+    ;
+
+assertion ::=
+    EXPECT STATUS EQUALS NUMBER:code SEMI
+    {: RESULT = new AssertStmt("status", code, null, false); :}
+    | EXPECT HEADER STRING:key EQUALS STRING:val SEMI
+    {: RESULT = new AssertStmt("header", key, val, false); :}
+    | EXPECT HEADER STRING:key CONTAINS STRING:val SEMI
+    {: RESULT = new AssertStmt("header", key, val, true); :}
+    | EXPECT BODY CONTAINS STRING:val SEMI
+    {: RESULT = new AssertStmt("body", null, val, true); :}
+    ;
