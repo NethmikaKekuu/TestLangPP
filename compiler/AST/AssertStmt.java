@@ -1,11 +1,10 @@
 package AST;
 
-// Assertion: expect status/header/body
-public class AssertStmt extends Statement {  // Make it public
+public class AssertStmt extends Statement {
     public String type; // "status", "header", "body"
-    public String key;  // status code (as string) OR header key OR null for body
-    public String value; // expected value or substring
-    public boolean isContains; // true if "contains", false if "equals"
+    public String key;  // header key if type=header
+    public String value; // expected value
+    public boolean isContains; // true if `contains` assertion
 
     public AssertStmt(String type, String key, String value, boolean isContains) {
         this.type = type;
