@@ -4,110 +4,107 @@ REM TestLangPP Compiler - Build Script
 REM Generates Lexer, Parser, and compiles all sources
 REM ============================================
 
-echo ========================================
+SETLOCAL
+
+REM -------------------------------
+REM Configuration Paths
+REM -------------------------------
+set LIB_DIR=lib
+set SRC_DIR=src
+set OUTPUT_DIR=output
+set JFLEX_JAR=%LIB_DIR%\jflex-full-1.9.1.jar
+set CUP_JAR=%LIB_DIR%\java-cup-11b.jar
+set CUP_RUNTIME=%LIB_DIR%\java-cup-11b-runtime.jar
+
+echo ============================================
 echo TestLangPP Compiler - Build
-echo ========================================
+echo ============================================
 echo.
 
-REM Step 1: Check required directories
+REM -------------------------------
+REM Step 1: Check directories
+REM -------------------------------
 echo [Step 1/6] Checking directories...
-if not exist "lib\" (
-    echo ERROR: lib directory not found!
+if not exist "%LIB_DIR%\" (
+    echo ERROR: Library directory "%LIB_DIR%" not found!
     pause
     exit /b 1
 )
-if not exist "src\" (
-    echo ERROR: src directory not found!
+if not exist "%SRC_DIR%\" (
+    echo ERROR: Source directory "%SRC_DIR%" not found!
     pause
     exit /b 1
 )
-if not exist "output\" mkdir output
-echo   ✓ Directories OK
+if not exist "%OUTPUT_DIR%\" mkdir "%OUTPUT_DIR%"
+echo Directories OK
 echo.
 
+REM -------------------------------
 REM Step 2: Clean previous builds
+REM -------------------------------
 echo [Step 2/6] Cleaning previous builds...
-if exist "src\Lexer.java" del "src\Lexer.java"
-if exist "src\parser.java" del "src\parser.java"
-if exist "src\sym.java" del "src\sym.java"
-del /Q src\*.class 2>nul
-del /Q src\AST\*.class 2>nul
-del /Q output\*.class 2>nul
-echo   ✓ Clean complete
+if exist "%SRC_DIR%\Lexer.java" del "%SRC_DIR%\Lexer.java"
+if exist "%SRC_DIR%\parser.java" del "%SRC_DIR%\parser.java"
+if exist "%SRC_DIR%\sym.java" del "%SRC_DIR%\sym.java"
+del /Q "%SRC_DIR%\*.class" 2>nul
+del /Q "%SRC_DIR%\AST\*.class" 2>nul
+del /Q "%OUTPUT_DIR%\*.class" 2>nul
+echo Clean complete
 echo.
 
-REM Step 3: Generate Lexer from lexer.flex
+REM -------------------------------
+REM Step 3: Generate Lexer
+REM -------------------------------
 echo [Step 3/6] Generating Lexer...
-java -jar lib\jflex-full-1.9.1.jar -d src src\lexer.flex
+java -jar "%JFLEX_JAR%" -d "%SRC_DIR%" "%SRC_DIR%\lexer.flex"
 if errorlevel 1 (
-    echo   ✗ ERROR: Lexer generation failed!
+    echo ✗ ERROR: Lexer generation failed!
     pause
     exit /b 1
 )
-echo   ✓ Lexer.java generated
+echo Lexer.java generated
 echo.
 
-REM Step 4: Generate Parser from parser.cup
+REM -------------------------------
+REM Step 4: Generate Parser
+REM -------------------------------
 echo [Step 4/6] Generating Parser...
-java -jar lib\java-cup-11b.jar -destdir src -parser parser src\parser.cup
+java -jar "%CUP_JAR%" -destdir "%SRC_DIR%" -parser parser "%SRC_DIR%\parser.cup"
 if errorlevel 1 (
-    echo   ✗ ERROR: Parser generation failed!
+    echo ✗ ERROR: Parser generation failed!
     pause
     exit /b 1
 )
-echo   ✓ parser.java and sym.java generated
+echo parser.java and sym.java generated
 echo.
 
-REM Step 5: Compile AST classes first
+REM -------------------------------
+REM Step 5: Compile AST classes
+REM -------------------------------
 echo [Step 5/6] Compiling AST classes...
-javac -cp "lib\java-cup-11b-runtime.jar" -d src src\AST\*.java
+javac -cp "%CUP_RUNTIME%" -d "%SRC_DIR%" "%SRC_DIR%\AST\*.java"
 if errorlevel 1 (
-    echo   ✗ ERROR: AST compilation failed!
+    echo ✗ ERROR: AST compilation failed!
     pause
     exit /b 1
 )
-echo   ✓ AST classes compiled
+echo AST classes compiled
 echo.
 
+REM -------------------------------
 REM Step 6: Compile main classes
+REM -------------------------------
 echo [Step 6/6] Compiling main classes...
-javac -cp "src;lib\java-cup-11b-runtime.jar" -d src src\Lexer.java src\parser.java src\sym.java src\TestParser.java
+javac -cp "%SRC_DIR%;%CUP_RUNTIME%" -d "%SRC_DIR%" "%SRC_DIR%\Lexer.java" "%SRC_DIR%\parser.java" "%SRC_DIR%\sym.java" "%SRC_DIR%\TestParser.java"
 if errorlevel 1 (
-    echo   ✗ ERROR: Main classes compilation failed!
+    echo ✗ ERROR: Main classes compilation failed!
     pause
     exit /b 1
 )
-echo   ✓ All classes compiled
+echo All classes compiled
 echo.
 
-REM Verify build
-echo ========================================
-echo Verifying build...
-if exist "src\Lexer.class" (
-    if exist "src\parser.class" (
-        if exist "src\TestParser.class" (
-            echo ✓ BUILD SUCCESSFUL!
-            echo ========================================
-            echo.
-            echo Ready to compile test files.
-            echo.
-            echo Usage:
-            echo   compile.bat examples\given.test
-            echo.
-        ) else (
-            echo ✗ ERROR: TestParser.class not found!
-            pause
-            exit /b 1
-        )
-    ) else (
-        echo ✗ ERROR: parser.class not found!
-        pause
-        exit /b 1
-    )
-) else (
-    echo ✗ ERROR: Lexer.class not found!
-    pause
-    exit /b 1
-)
-
-pause
+echo ============================================
+echo BUILD SUCCESSFUL!
+echo ============================================
+ENDLOCAL
