@@ -1,0 +1,18 @@
+config {
+  base_url = "http://localhost:8080";
+}
+
+let userId1 = "42";
+let userId2 = "100";
+
+test User42 {
+  GET "/api/users/$userId1";
+  expect status = 200;
+  expect body contains "user";
+}
+
+test User100 {
+  GET "/api/users/$userId2";
+  expect status = 200;
+  expect body contains "test";
+}

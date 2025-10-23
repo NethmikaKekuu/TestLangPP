@@ -115,5 +115,4 @@ echo To run the compiler:
 echo   java -cp "%CLASS_DIR%;%CUP_RUNTIME%" TestParser examples\given.test
 echo.
 
-pause
 ENDLOCAL

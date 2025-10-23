@@ -6,6 +6,10 @@ parser code {:
     public void syntax_error(Symbol cur_token) {
         System.err.println("Syntax error at line " + (cur_token.left+1) + ", near '" + cur_token.value + "'");
     }
+
+    public void unrecovered_syntax_error(Symbol cur_token) {
+        System.err.println("Fatal syntax error at line " + (cur_token.left+1));
+    }
 :};
 
 terminal String IDENT, STRING, NUMBER;
@@ -37,9 +41,6 @@ program ::= config_block_opt:c let_stmts:l test_blocks:t
        for (LetStmt let : l) {
            if (!names.add(let.name)) {
                String msg = "Duplicate variable '" + let.name + "'";
-               if (let.line >= 0) {
-                   msg += " at line " + (let.line + 1);
-               }
                throw new RuntimeException(msg);
            }
        }
@@ -91,9 +92,9 @@ request_stmt ::= GET STRING:path SEMI
                  {: RESULT=new RequestStmt("GET",path,new ArrayList<>(),null); :}
                  | DELETE STRING:path SEMI
                  {: RESULT=new RequestStmt("DELETE",path,new ArrayList<>(),null); :}
-                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
                  {: RESULT=new RequestStmt("POST",path,headers,body); :}
-                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
                  {: RESULT=new RequestStmt("PUT",path,headers,body); :}
                  | POST STRING:path SEMI
                  {: RESULT=new RequestStmt("POST",path,new ArrayList<>(),null); :}

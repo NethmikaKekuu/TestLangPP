@@ -9,7 +9,6 @@ if "%1"=="" (
     echo Examples:
     echo   compile.bat examples\given.test
     echo   compile.bat examples\all_methods.test
-    echo   compile.bat examples\test_duplicate.test
     echo.
     pause
     exit /b 1
@@ -23,7 +22,7 @@ echo Input: %1
 echo.
 
 REM Check if TestParser is compiled
-if not exist "src\TestParser.class" (
+if not exist "ClassLib\TestParser.class" (
     echo TestParser not found. Building first...
     echo.
     call build.bat
@@ -48,7 +47,7 @@ echo ========================================
 echo [1/3] Parsing and generating code...
 echo ========================================
 echo.
-java -cp "src;lib\java-cup-11b-runtime.jar" TestParser %1
+java -cp "ClassLib;lib\java-cup-11b-runtime.jar" TestParser %1
 if errorlevel 1 (
     echo.
     echo [ERROR] Compilation failed! Check your test file syntax.
