@@ -17,7 +17,7 @@ public class TestParser {
         try {
             // Parse the input file
             Lexer lexer = new Lexer(new FileReader(inputFile));
-            Parser p = new Parser(lexer);
+            parser p = new parser(lexer);
             Symbol result = p.parse();
 
             if (result != null && result.value != null) {

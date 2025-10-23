@@ -38,6 +38,8 @@ if not exist "%SRC_DIR%\" (
     exit /b 1
 )
 if not exist "%CLASS_DIR%\" mkdir "%CLASS_DIR%"
+if not exist "%CLASS_DIR%\AST\" mkdir "%CLASS_DIR%\AST"
+if not exist "%OUTPUT_DIR%\" mkdir "%OUTPUT_DIR%"
 echo Directories OK
 echo.
 
@@ -46,7 +48,7 @@ REM Step 2: Clean previous builds
 REM -------------------------------
 echo [Step 2/6] Cleaning previous builds...
 if exist "%SRC_DIR%\Lexer.java" del "%SRC_DIR%\Lexer.java"
-if exist "%SRC_DIR%\parser.java" del "%SRC_DIR%\parser.java"
+if exist "%SRC_DIR%\Parser.java" del "%SRC_DIR%\Parser.java"
 if exist "%SRC_DIR%\sym.java" del "%SRC_DIR%\sym.java"
 if exist "%CLASS_DIR%\*.class" del /Q "%CLASS_DIR%\*.class"
 if exist "%CLASS_DIR%\AST\*.class" del /Q "%CLASS_DIR%\AST\*.class"
@@ -59,7 +61,7 @@ REM -------------------------------
 echo [Step 3/6] Generating Lexer...
 java -jar "%JFLEX_JAR%" -d "%SRC_DIR%" "%SRC_DIR%\lexer.flex"
 if errorlevel 1 (
-    echo  ERROR: Lexer generation failed!
+    echo ERROR: Lexer generation failed!
     pause
     exit /b 1
 )
@@ -72,7 +74,7 @@ REM -------------------------------
 echo [Step 4/6] Generating Parser...
 java -jar "%CUP_JAR%" -destdir "%SRC_DIR%" -parser Parser -symbols sym "%SRC_DIR%\parser.cup"
 if errorlevel 1 (
-    echo  ERROR: Parser generation failed!
+    echo ERROR: Parser generation failed!
     pause
     exit /b 1
 )
@@ -83,9 +85,9 @@ REM -------------------------------
 REM Step 5: Compile AST classes
 REM -------------------------------
 echo [Step 5/6] Compiling AST classes...
-javac -d "%CLASS_DIR%" "%SRC_DIR%\AST\*.java"
+javac -d "%CLASS_DIR%" -cp "%CUP_RUNTIME%" "%SRC_DIR%\AST\*.java"
 if errorlevel 1 (
-    echo  ERROR: AST compilation failed!
+    echo ERROR: AST compilation failed!
     pause
     exit /b 1
 )
@@ -93,21 +95,25 @@ echo AST classes compiled
 echo.
 
 REM -------------------------------
-REM Step 6: Compile main classes (Lexer, Parser, sym, TestParser)
+REM Step 6: Compile generated + main classes
 REM -------------------------------
 echo [Step 6/6] Compiling main classes...
-javac -cp "%CLASS_DIR%;%CUP_RUNTIME%" -d "%CLASS_DIR%" "%SRC_DIR%\Lexer.java" "%SRC_DIR%\Parser.java" "%SRC_DIR%\sym.java" "%SRC_DIR%\TestParser.java"
+javac -cp "%CLASS_DIR%;%CUP_RUNTIME%" -d "%CLASS_DIR%" "%SRC_DIR%\*.java"
 if errorlevel 1 (
     echo ERROR: Main classes compilation failed!
     pause
     exit /b 1
 )
-echo All classes compiled into %CLASS_DIR%
+echo All classes compiled
 echo.
 
 echo ============================================
 echo BUILD SUCCESSFUL!
-echo All .class files are in %CLASS_DIR%
 echo ============================================
-ENDLOCAL
+echo.
+echo To run the compiler:
+echo   java -cp "%CLASS_DIR%;%CUP_RUNTIME%" TestParser examples\given.test
+echo.
 
+pause
+ENDLOCAL
