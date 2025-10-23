@@ -31,7 +31,20 @@ non terminal List<ConfigItem> config_items;
 non terminal ConfigItem config_item;
 
 program ::= config_block_opt:c let_stmts:l test_blocks:t
-    {: RESULT = new Program(c,l,t); :};
+    {:
+       // Check for duplicate variable names
+       Set<String> names = new HashSet<>();
+       for (LetStmt let : l) {
+           if (!names.add(let.name)) {
+               String msg = "Duplicate variable '" + let.name + "'";
+               if (let.line >= 0) {
+                   msg += " at line " + (let.line + 1);
+               }
+               throw new RuntimeException(msg);
+           }
+       }
+       RESULT = new Program(c, l, t);
+    :};
 
 config_block_opt ::= CONFIG LBRACE config_items:items RBRACE
     {: RESULT = new ConfigBlock(items); :}
@@ -54,9 +67,9 @@ let_stmts ::= let_stmts:list let_stmt:stmt
     {: RESULT = new ArrayList<LetStmt>(); :};
 
 let_stmt ::= LET IDENT:name EQUALS STRING:val SEMI
-    {: RESULT = new LetStmt(name,val,false); :}
+    {: RESULT = new LetStmt(name, val, false, nameleft); :}
     | LET IDENT:name EQUALS NUMBER:val SEMI
-    {: RESULT = new LetStmt(name,val,true); :};
+    {: RESULT = new LetStmt(name, val, true, nameleft); :};
 
 test_blocks ::= test_blocks:list test_block:block
     {: list.add(block); RESULT=list; :}
@@ -64,7 +77,7 @@ test_blocks ::= test_blocks:list test_block:block
     {: List<TestBlock> list = new ArrayList<>(); list.add(block); RESULT=list; :};
 
 test_block ::= TEST IDENT:name LBRACE statements:stmts RBRACE
-    {: RESULT = new TestBlock(name,stmts); :};
+    {: RESULT = new TestBlock(name, stmts); :};
 
 statements ::= statements:list statement:stmt
     {: list.add(stmt); RESULT=list; :}
@@ -78,9 +91,9 @@ request_stmt ::= GET STRING:path SEMI
                  {: RESULT=new RequestStmt("GET",path,new ArrayList<>(),null); :}
                  | DELETE STRING:path SEMI
                  {: RESULT=new RequestStmt("DELETE",path,new ArrayList<>(),null); :}
-                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
+                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
                  {: RESULT=new RequestStmt("POST",path,headers,body); :}
-                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
+                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
                  {: RESULT=new RequestStmt("PUT",path,headers,body); :}
                  | POST STRING:path SEMI
                  {: RESULT=new RequestStmt("POST",path,new ArrayList<>(),null); :}
