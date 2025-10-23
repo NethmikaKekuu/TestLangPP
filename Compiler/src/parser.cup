@@ -78,9 +78,9 @@ request_stmt ::= GET STRING:path SEMI
                  {: RESULT=new RequestStmt("GET",path,new ArrayList<>(),null); :}
                  | DELETE STRING:path SEMI
                  {: RESULT=new RequestStmt("DELETE",path,new ArrayList<>(),null); :}
-                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
                  {: RESULT=new RequestStmt("POST",path,headers,body); :}
-                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE SEMI
+                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
                  {: RESULT=new RequestStmt("PUT",path,headers,body); :}
                  | POST STRING:path SEMI
                  {: RESULT=new RequestStmt("POST",path,new ArrayList<>(),null); :}
