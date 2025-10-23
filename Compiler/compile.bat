@@ -8,7 +8,7 @@ if "%1"=="" (
     echo.
     echo Examples:
     echo   compile.bat examples\given.test
-    echo   compile.bat mytests\api.test
+    echo   compile.bat examples\all_methods.test
     echo.
     pause
     exit /b 1
@@ -28,7 +28,7 @@ if not exist "src\TestParser.class" (
     call build.bat
     if errorlevel 1 (
         echo.
-        echo ✗ Build failed! Cannot continue.
+        echo [ERROR] Build failed! Cannot continue.
         pause
         exit /b 1
     )
@@ -37,7 +37,7 @@ if not exist "src\TestParser.class" (
 
 REM Check if input file exists
 if not exist "%1" (
-    echo ✗ ERROR: Input file not found: %1
+    echo [ERROR] Input file not found: %1
     pause
     exit /b 1
 )
@@ -50,13 +50,13 @@ echo.
 java -cp "src;lib\java-cup-11b-runtime.jar" TestParser %1
 if errorlevel 1 (
     echo.
-    echo ✗ ERROR: Compilation failed!
-    echo Check your test file syntax.
+    echo [ERROR] Compilation failed! Check your test file syntax.
     pause
     exit /b 1
 )
-
+echo [OK] Code generated
 echo.
+
 echo ========================================
 echo [2/3] Compiling generated tests...
 echo ========================================
@@ -64,7 +64,7 @@ echo.
 
 REM Check if output was generated
 if not exist "output\GeneratedTests.java" (
-    echo ✗ ERROR: GeneratedTests.java was not created!
+    echo [ERROR] GeneratedTests.java was not created!
     pause
     exit /b 1
 )
@@ -73,11 +73,11 @@ REM Compile the generated tests
 javac -cp "lib\junit-platform-console-standalone-1.9.3.jar" -d output output\GeneratedTests.java
 if errorlevel 1 (
     echo.
-    echo ✗ ERROR: Failed to compile generated tests!
+    echo [ERROR] Failed to compile generated tests!
     pause
     exit /b 1
 )
-echo ✓ Generated tests compiled successfully
+echo [OK] Generated tests compiled successfully
 echo.
 
 echo ========================================
@@ -102,4 +102,3 @@ echo ========================================
 echo.
 echo Generated test file: output\GeneratedTests.java
 echo.
-pause
