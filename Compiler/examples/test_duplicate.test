@@ -1,0 +1,9 @@
+let userId = "42";
+let userId = "100";
+
+test Test {
+  GET "/api/users/$userId";
+  expect status = 200;
+  expect body contains "test";
+}
+
