@@ -11,7 +11,7 @@ parser code {:
 terminal String IDENT, STRING, NUMBER;
 terminal CONFIG, BASE_URL, HEADER, LET, TEST;
 terminal GET, POST, PUT, DELETE;
-terminal EXPECT, STATUS, body, CONTAINS;
+terminal EXPECT, STATUS, BODY, CONTAINS;
 terminal LBRACE, RBRACE, SEMI, EQUALS;
 
 non terminal Program program;
@@ -107,7 +107,7 @@ header_stmts_opt ::= header_stmts_opt:list header_stmt:stmt
 header_stmt ::= HEADER STRING:key EQUALS STRING:val SEMI
     {: RESULT=new HeaderStmt(key,val); :};
 
-body_stmt_opt ::= body EQUALS STRING:content SEMI
+body_stmt_opt ::= BODY EQUALS STRING:content SEMI
     {: RESULT=new BodyStmt(content); :}
     | /* empty */ {: RESULT=null; :};
 
