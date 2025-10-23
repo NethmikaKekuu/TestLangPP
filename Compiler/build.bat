@@ -1,7 +1,8 @@
 @echo off
 REM ============================================
-REM TestLangPP Compiler - Build Script
+REM TestLangPP Compiler - Full Build Script
 REM Generates Lexer, Parser, and compiles all sources
+REM Stores all .class files in ClassLib
 REM ============================================
 
 SETLOCAL
@@ -12,12 +13,13 @@ REM -------------------------------
 set LIB_DIR=lib
 set SRC_DIR=src
 set OUTPUT_DIR=output
+set CLASS_DIR=ClassLib
 set JFLEX_JAR=%LIB_DIR%\jflex-full-1.9.1.jar
 set CUP_JAR=%LIB_DIR%\java-cup-11b.jar
 set CUP_RUNTIME=%LIB_DIR%\java-cup-11b-runtime.jar
 
 echo ============================================
-echo TestLangPP Compiler - Build
+echo TestLangPP Compiler - Full Build
 echo ============================================
 echo.
 
@@ -35,7 +37,7 @@ if not exist "%SRC_DIR%\" (
     pause
     exit /b 1
 )
-if not exist "%OUTPUT_DIR%\" mkdir "%OUTPUT_DIR%"
+if not exist "%CLASS_DIR%\" mkdir "%CLASS_DIR%"
 echo Directories OK
 echo.
 
@@ -46,9 +48,8 @@ echo [Step 2/6] Cleaning previous builds...
 if exist "%SRC_DIR%\Lexer.java" del "%SRC_DIR%\Lexer.java"
 if exist "%SRC_DIR%\parser.java" del "%SRC_DIR%\parser.java"
 if exist "%SRC_DIR%\sym.java" del "%SRC_DIR%\sym.java"
-del /Q "%SRC_DIR%\*.class" 2>nul
-del /Q "%SRC_DIR%\AST\*.class" 2>nul
-del /Q "%OUTPUT_DIR%\*.class" 2>nul
+if exist "%CLASS_DIR%\*.class" del /Q "%CLASS_DIR%\*.class"
+if exist "%CLASS_DIR%\AST\*.class" del /Q "%CLASS_DIR%\AST\*.class"
 echo Clean complete
 echo.
 
@@ -58,7 +59,7 @@ REM -------------------------------
 echo [Step 3/6] Generating Lexer...
 java -jar "%JFLEX_JAR%" -d "%SRC_DIR%" "%SRC_DIR%\lexer.flex"
 if errorlevel 1 (
-    echo ✗ ERROR: Lexer generation failed!
+    echo  ERROR: Lexer generation failed!
     pause
     exit /b 1
 )
@@ -69,22 +70,22 @@ REM -------------------------------
 REM Step 4: Generate Parser
 REM -------------------------------
 echo [Step 4/6] Generating Parser...
-java -jar "%CUP_JAR%" -destdir "%SRC_DIR%" -parser parser "%SRC_DIR%\parser.cup"
+java -jar "%CUP_JAR%" -destdir "%SRC_DIR%" -parser Parser -symbols sym "%SRC_DIR%\parser.cup"
 if errorlevel 1 (
-    echo ✗ ERROR: Parser generation failed!
+    echo  ERROR: Parser generation failed!
     pause
     exit /b 1
 )
-echo parser.java and sym.java generated
+echo Parser.java and sym.java generated
 echo.
 
 REM -------------------------------
 REM Step 5: Compile AST classes
 REM -------------------------------
 echo [Step 5/6] Compiling AST classes...
-javac -cp "%CUP_RUNTIME%" -d "%SRC_DIR%" "%SRC_DIR%\AST\*.java"
+javac -d "%CLASS_DIR%" "%SRC_DIR%\AST\*.java"
 if errorlevel 1 (
-    echo ✗ ERROR: AST compilation failed!
+    echo  ERROR: AST compilation failed!
     pause
     exit /b 1
 )
@@ -92,19 +93,21 @@ echo AST classes compiled
 echo.
 
 REM -------------------------------
-REM Step 6: Compile main classes
+REM Step 6: Compile main classes (Lexer, Parser, sym, TestParser)
 REM -------------------------------
 echo [Step 6/6] Compiling main classes...
-javac -cp "%SRC_DIR%;%CUP_RUNTIME%" -d "%SRC_DIR%" "%SRC_DIR%\Lexer.java" "%SRC_DIR%\parser.java" "%SRC_DIR%\sym.java" "%SRC_DIR%\TestParser.java"
+javac -cp "%CLASS_DIR%;%CUP_RUNTIME%" -d "%CLASS_DIR%" "%SRC_DIR%\Lexer.java" "%SRC_DIR%\Parser.java" "%SRC_DIR%\sym.java" "%SRC_DIR%\TestParser.java"
 if errorlevel 1 (
-    echo ✗ ERROR: Main classes compilation failed!
+    echo ERROR: Main classes compilation failed!
     pause
     exit /b 1
 )
-echo All classes compiled
+echo All classes compiled into %CLASS_DIR%
 echo.
 
 echo ============================================
 echo BUILD SUCCESSFUL!
+echo All .class files are in %CLASS_DIR%
 echo ============================================
 ENDLOCAL
+
