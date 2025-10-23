@@ -9,6 +9,7 @@ if "%1"=="" (
     echo Examples:
     echo   compile.bat examples\given.test
     echo   compile.bat examples\all_methods.test
+    echo   compile.bat examples\test_duplicate.test
     echo.
     pause
     exit /b 1

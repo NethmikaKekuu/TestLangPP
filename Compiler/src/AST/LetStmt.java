@@ -7,9 +7,10 @@ public class LetStmt {
     public boolean isNumber;
     public int line;
 
-    public LetStmt(String name, String value, boolean isNumber) {
+    public LetStmt(String name, String value, boolean isNumber, int line) {
         this.name = name;
         this.value = value;
         this.isNumber = isNumber;
+        this.line = line;
     }
 }
