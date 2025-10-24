@@ -144,6 +144,13 @@ body_stmt ::= BODY EQUALS STRING:content SEMI
 
 assertion ::= EXPECT STATUS EQUALS NUMBER:code SEMI
     {: RESULT=new AssertStmt("status", null, code, false); :}
+    | EXPECT STATUS EQUALS STRING:code SEMI
+        {:
+            System.err.println("Status must be integer");
+            System.err.println("Line " + (codeleft + 1) + ": expected NUMBER for status, got \"" + code + "\"");
+            parser.report_fatal_error("", null);
+            RESULT = null;
+        :}
     | EXPECT STATUS IN NUMBER:start DOTDOT NUMBER:end SEMI
     {: RESULT=new AssertStmt("status_range", null, start + ".." + end, false); :}
     | EXPECT HEADER STRING:key EQUALS STRING:val SEMI

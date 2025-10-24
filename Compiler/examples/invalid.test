@@ -4,16 +4,3 @@ config {
 
 let 2a = "x";
 
-POST "/x" {
-  body = 123;
-};
-
-test InvalidStatus {
-  GET "/y";
-  expect status = "200";
-}
-
-test MissingSemicolon {
-  GET "/z"
-  expect status = 200;
-}

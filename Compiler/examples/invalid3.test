@@ -1,0 +1,13 @@
+config {
+  base_url = "http://localhost:8080";
+}
+
+test InvalidStatus {
+  GET "/y";
+  expect status = "200";
+}
+
+test MissingSemicolon {
+  GET "/z"
+  expect status = 200;
+}

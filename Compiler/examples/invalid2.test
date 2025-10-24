@@ -9,13 +9,3 @@ test InvalidBody {
   expect status = 200;
   expect body contains "ok";
 }
-
-test InvalidStatus {
-  GET "/y";
-  expect status = "200";
-}
-
-test MissingSemicolon {
-  GET "/z"
-  expect status = 200;
-}
