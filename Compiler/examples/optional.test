@@ -37,7 +37,6 @@ test AnySuccess {
   expect body contains "status";
 }
 
-// Combined: Both features together
 test UpdateWithMultilineBody {
   PUT "/api/users/$userId" {
     body = """

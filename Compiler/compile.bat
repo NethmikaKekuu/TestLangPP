@@ -13,7 +13,6 @@ if "%1"=="" (
     echo   compile.bat examples\given.test
     echo   compile.bat examples\all_methods.test
     echo.
-    pause
     exit /b 1
 )
 
@@ -32,7 +31,6 @@ if not exist "ClassLib\TestParser.class" (
     if errorlevel 1 (
         echo.
         echo [ERROR] Build failed! Cannot continue.
-        pause
         exit /b 1
     )
     echo.
@@ -41,7 +39,6 @@ if not exist "ClassLib\TestParser.class" (
 REM Check if input file exists
 if not exist "%1" (
     echo [ERROR] Input file not found: %1
-    pause
     exit /b 1
 )
 
@@ -54,7 +51,6 @@ java -cp "ClassLib;lib\java-cup-11b-runtime.jar" TestParser %1
 if errorlevel 1 (
     echo.
     echo [ERROR] Compilation failed! Check your test file syntax.
-    pause
     exit /b 1
 )
 echo [OK] Code generated
@@ -77,7 +73,6 @@ javac -cp "lib\junit-platform-console-standalone-1.9.3.jar" -d output output\Gen
 if errorlevel 1 (
     echo.
     echo [ERROR] Failed to compile generated tests!
-    pause
     exit /b 1
 )
 echo [OK] Generated tests compiled successfully
