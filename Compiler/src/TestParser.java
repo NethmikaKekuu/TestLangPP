@@ -18,33 +18,53 @@ public class TestParser {
             // Parse the input file
             Lexer lexer = new Lexer(new FileReader(inputFile));
             Parser p = new Parser(lexer);
-            Symbol result = p.parse();
 
-            if (result != null && result.value != null) {
-                Program program = (Program) result.value;
-
-                System.out.println("✓ Parse successful!");
-                System.out.println("  Config: " + (program.config != null ? "present" : "none"));
-                System.out.println("  Variables: " + program.variables.size());
-                System.out.println("  Tests: " + program.tests.size());
-
-                // Validate
-                validateProgram(program);
-
-                // Generate code
-                CodeGenerator generator = new CodeGenerator(program);
-                generator.generate(outputFile);
-
-                System.out.println("✓ Code generation complete!");
-                System.out.println("\nGenerated file: " + outputFile);
-
-            } else {
-                System.err.println("✗ Parse failed - no result");
+            Symbol result = null;
+            try {
+                result = p.parse();
+            } catch (Exception e) {
+                // Parser already printed the error message, just exit
                 System.exit(1);
             }
+
+            // Check if parse was successful
+            if (result == null || result.value == null) {
+                System.err.println("\n[ERROR] Parse failed - no result returned");
+                System.exit(1);
+            }
+
+            // Verify we got the correct type
+            if (!(result.value instanceof Program)) {
+                System.err.println("\n[ERROR] Parse failed - invalid parse result");
+                System.err.println("  Expected Program but got: " + result.value.getClass().getName());
+                System.exit(1);
+            }
+
+            Program program = (Program) result.value;
+
+            System.out.println("✓ Parse successful!");
+            System.out.println("  Config: " + (program.config != null ? "present" : "none"));
+            System.out.println("  Variables: " + program.variables.size());
+            System.out.println("  Tests: " + program.tests.size());
+
+            // Validate
+            validateProgram(program);
+
+            // Generate code
+            CodeGenerator generator = new CodeGenerator(program);
+            generator.generate(outputFile);
+
+            System.out.println("✓ Code generation complete!");
+            System.out.println("\nGenerated file: " + outputFile);
+
+        } catch (FileNotFoundException e) {
+            System.err.println("\n[ERROR] File not found: " + inputFile);
+            System.exit(1);
         } catch (Exception e) {
-            System.err.println("✗ Error: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("\n[ERROR] " + e.getMessage());
+            if (System.getenv("DEBUG") != null) {
+                e.printStackTrace();
+            }
             System.exit(1);
         }
     }

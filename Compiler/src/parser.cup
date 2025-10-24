@@ -3,12 +3,29 @@ import java_cup.runtime.*;
 import java.util.*;
 
 parser code {:
+    private int errorCount = 0;
+
     public void syntax_error(Symbol cur_token) {
-        System.err.println("Syntax error at line " + (cur_token.left+1) + ", near '" + cur_token.value + "'");
+        errorCount++;
+        report_error("Syntax error at line " + (cur_token.left + 1), null);
     }
 
-    public void unrecovered_syntax_error(Symbol cur_token) {
-        System.err.println("Fatal syntax error at line " + (cur_token.left+1));
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        errorCount++;
+        report_fatal_error("Fatal syntax error at line " + (cur_token.left + 1), null);
+    }
+
+    public void report_error(String message, Object info) {
+        System.err.println(message);
+    }
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+        report_error(message, info);
+        throw new Exception("Parse failed due to syntax errors");
+    }
+
+    public boolean hasErrors() {
+        return errorCount > 0;
     }
 :};
 
@@ -69,7 +86,14 @@ let_stmts ::= let_stmts:list let_stmt:stmt
 let_stmt ::= LET IDENT:name EQUALS STRING:val SEMI
     {: RESULT = new LetStmt(name, val, false, nameleft); :}
     | LET IDENT:name EQUALS NUMBER:val SEMI
-    {: RESULT = new LetStmt(name, val, true, nameleft); :};
+    {: RESULT = new LetStmt(name, val, true, nameleft); :}
+    | LET error:e
+    {:
+        System.err.println("Identifier cannot start with a digit");
+        System.err.println("Line " + (eleft + 1) + ": expected IDENT after 'let'");
+        parser.report_fatal_error("", null);
+        RESULT = null;
+    :};
 
 test_blocks ::= test_blocks:list test_block:block
     {: list.add(block); RESULT=list; :}
