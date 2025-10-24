@@ -2,9 +2,13 @@ config {
   base_url = "http://localhost:8080";
 }
 
-POST "/x" {
-  body = 123;
-};
+test InvalidBody {
+  POST "/x" {
+    body = 123;
+  };
+  expect status = 200;
+  expect body contains "ok";
+}
 
 test InvalidStatus {
   GET "/y";

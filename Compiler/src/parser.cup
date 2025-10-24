@@ -132,8 +132,15 @@ header_stmt ::= HEADER STRING:key EQUALS STRING:val SEMI
     {: RESULT=new HeaderStmt(key, val); :};
 
 body_stmt ::= BODY EQUALS STRING:content SEMI
-    {: RESULT=new BodyStmt(content); :}
-    | /* empty */ {: RESULT=null; :};
+      {: RESULT=new BodyStmt(content); :}
+        | BODY EQUALS NUMBER:num SEMI
+        {:
+            System.err.println("Body must be a string");
+            System.err.println("Line " + (numleft + 1) + ": expected STRING after 'body ='");
+            parser.report_fatal_error("", null);
+            RESULT = null;
+        :}
+        | /* empty */ {: RESULT=null; :};
 
 assertion ::= EXPECT STATUS EQUALS NUMBER:code SEMI
     {: RESULT=new AssertStmt("status", null, code, false); :}
