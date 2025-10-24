@@ -1,10 +1,10 @@
-# TestLang++ Compilation Guide
+# TestLangPP IT23657496 Kekulanthale K. M. N. Y
 
 Complete guide for building and running the TestLang++ DSL compiler.
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 Before compiling, ensure you have:
 
@@ -13,9 +13,10 @@ Before compiling, ensure you have:
 - **CUP 0.11b** (in `lib/java-cup-11b.jar` and `lib/java-cup-11b-runtime.jar`)
 - **JUnit 5** (in `lib/junit-platform-console-standalone-1.9.3.jar`)
 
+**AND THE DEMO BACKEND ON PORT 8080 ON THE LOCAL HOST SHOULD BE RUNNING**
 ---
 
-## 🚀 Quick Start (Automated)
+##  Quick Start (Automated)
 
 ### Option 1: Full Build + Run Test (Recommended)
 
@@ -31,16 +32,42 @@ This single command will:
 4. Compile the generated tests
 5. Run the tests with JUnit
 
-### Option 2: Build Only
+### Option 2: Automated using .bat Script 
 
 ```batch
 # Just build the compiler
 build.bat
 ```
+### 
+```batch
+compile.bat examples\all_methods.test        
+compile.bat examples\given.test
+compile.bat examples\test_duplicate.test  
+compile.bat examples\optional.test      
+compile.bat examples\invalid.test        
+compile.bat examples\invalid2.test       
+compile.bat examples\invalid3.test       
+compile.bat examples\invalid4.test
 
+all_methods.test -> **POST CreateUser**: Posts JSON to `/api/users` and checks that status is                       201 and the body contains `"success"`;
+                    **GET GetUser**: Gets `/api/users/42` and checks that status is 200 and the                     body contains `"id": 42`; **PUT UpdateUser**: Puts JSON to `/api/users/42`                      and checks that status is 200, headers `"X-App"` and `"Content-Type"` are                       correct, and the body contains `"updated": true` and `"role": "ADMIN"`;                         **DELETE DeleteUser**: Deletes `/api/users/42` and checks that status is                        200 and the body contains `"deleted": true"`
+given.test -> **POST /api/login**: Logs in by posting credentials and checks status 200, JSON                 headers, and token;
+              **GET /api/users/42**: Retrieves a user and checks status 200 and the correct                   user ID
+invalid.test -> **LET invalid variable**: Declares `let 2a = "x";` which is invalid because                     variable names cannot start with a digit
+invalid2.test -> **POST /x**: Tests a request with a numeric body instead of a string, which is                  invalid, expecting status 200 and `"ok"` in the body
+invalid3.test -> **GET /y**: Tests a request expecting status `"200"` as a string, which is                      invalid because status must be an integer
+invalid4.test -> **GET /z**: Tests a request missing a semicolon after the GET statement,                         making it invalid
+optional.test -> **POST LoginMultiline**: Posts a multiline JSON to `/api/login` and checks                      status 200 and that the body contains `"token"`
+                 **GET SuccessRange**: Gets `/api/users/42` and checks status 200–299 and that                   the body contains `"user"`
+                 **GET AnySuccess**: Gets `/api/health` and checks status 200–299 and that the                   body contains `"status"`
+                 **PUT UpdateWithMultilineBody**: Puts a multiline JSON to `/api/users/42` and                   checks status 200–299 and that the body contains `"updated"`
+test_duplicate.test -> **LET DuplicateUserId**: Declares `userId` twice, attempts
+                        **GET /api/users/$userId** and checks status 200 and the body contains                         `"test"`, but it cannot run due to the duplicate variable error
+
+```
 ---
 
-## 🔧 Manual Compilation (Step-by-Step)
+## Manual Compilation (Step-by-Step)
 
 If you prefer to understand each step or need to troubleshoot:
 
@@ -102,34 +129,54 @@ java -jar lib\junit-platform-console-standalone-1.9.3.jar --class-path output --
 
 ---
 
-## 📁 Directory Structure After Compilation
+##  Directory Structure After Compilation
 
 ```
-TestLangPP-Compiler/
+Compiler/
 ├── src/
-│   ├── lexer.flex              # Source
-│   ├── parser.cup              # Source
+│   ├── lexer.flex              # Flexer
+│   ├── parser.cup              # Grammer
 │   ├── Lexer.java              # Generated (Step 1)
 │   ├── Parser.java             # Generated (Step 2)
 │   ├── sym.java                # Generated (Step 2)
-│   ├── TestParser.java         # Source
+│   ├── TestParser.java         # Main Class
 │   └── AST/
-│       └── *.java              # Source
+│       └── *.java              # Supporting classes
 ├── ClassLib/
-│   ├── Lexer.class             # Compiled
-│   ├── Parser.class            # Compiled
-│   ├── sym.class               # Compiled
-│   ├── TestParser.class        # Compiled
+│   ├── Lexer.class             # Compiled .class
+│   ├── Parser.class            # Compiled .class
+│   ├── sym.class               # Compiled .class
+│   ├── TestParser.class        # Compiled .class
 │   └── AST/
 │       └── *.class             # Compiled
 └── output/
     ├── GeneratedTests.java     # Generated from .test
     └── GeneratedTests.class    # Compiled JUnit test
 ```
+```
+Backend/
+├── src/
+│   └── main/java/com/testlang/backend/
+|       └── config
+|       |    └── WebConfig
+│       └── controller
+|       |    └── AuthController #POST Requests
+|       |    └── HealthController #GET Requests
+|       |    └── UserController  #DELETE and PUT Requests
+|       └── model
+|       |    └── ApiResponse
+|       |    └── LoginRequest
+|       |    └── LoginResponse
+|       |    └── User
+|       └── BackendApplication.java
+├── pom.xml
+└── target/
+    └── testlang-backend-0.0.1-SNAPSHOT.jar
+```
 
 ---
 
-## 🔍 Compilation Workflow Diagram
+##  Compilation Workflow Diagram
 
 ```
 lexer.flex ──[JFlex]──> Lexer.java
@@ -154,7 +201,7 @@ given.test ────────> output/GeneratedTests.java
 
 ---
 
-## 🛠️ Troubleshooting
+##  Troubleshooting
 
 ### Error: "Class not found"
 
@@ -212,7 +259,7 @@ java -jar TestLangPP-Backend\target\testlang-backend-0.0.1-SNAPSHOT.jar
 
 ---
 
-## 🧪 Testing Your Build
+##  Testing Your Build
 
 ### Create a Simple Test File
 
@@ -295,7 +342,7 @@ Test execution complete!
 
 ---
 
-## 🎯 Common Commands Reference
+##  Common Commands Reference
 
 | Task | Command |
 |------|---------|
@@ -308,7 +355,7 @@ Test execution complete!
 
 ---
 
-## 📝 Environment Variables (Optional)
+##  Environment Variables (Optional)
 
 For easier access, you can set:
 
@@ -325,7 +372,7 @@ javac -cp %JUNIT_JAR% -d output output\GeneratedTests.java
 
 ---
 
-## 🔄 Incremental Compilation
+##  Incremental Compilation
 
 If you only modify:
 
@@ -352,9 +399,12 @@ java -jar lib\jflex-full-1.9.1.jar -d src src\lexer.flex
 javac -cp "ClassLib;lib\java-cup-11b-runtime.jar" -d ClassLib src\Lexer.java
 ```
 
+
+
+
 ---
 
-## 🎓 Build Script Details
+##  Build Script Details
 
 ### build.bat Flow
 
@@ -375,7 +425,7 @@ javac -cp "ClassLib;lib\java-cup-11b-runtime.jar" -d ClassLib src\Lexer.java
 
 ---
 
-## ✅ Verification Checklist
+##  Verification Checklist
 
 After compilation, verify:
 
@@ -390,7 +440,7 @@ After compilation, verify:
 
 ---
 
-## 🆘 Getting Help
+##  Getting Help
 
 If you encounter issues:
 
@@ -402,9 +452,9 @@ If you encounter issues:
 
 ---
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - JFlex Manual: https://jflex.de/manual.html
 - CUP Manual: http://www2.cs.tum.edu/projects/cup/
 - JUnit 5 Guide: https://junit.org/junit5/docs/current/user-guide/
-- Assignment Spec: See assignment document for language reference
+- Assignment Spec: See the Grammer Document for language Specification
