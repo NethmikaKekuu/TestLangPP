@@ -17,6 +17,7 @@ terminal CONFIG, BASE_URL, HEADER, LET, TEST;
 terminal GET, POST, PUT, DELETE;
 terminal EXPECT, STATUS, BODY, CONTAINS;
 terminal LBRACE, RBRACE, SEMI, EQUALS;
+terminal IN, DOTDOT;
 
 non terminal Program program;
 non terminal ConfigBlock config_block_opt;
@@ -114,6 +115,8 @@ body_stmt_opt ::= BODY EQUALS STRING:content SEMI
 
 assertion ::= EXPECT STATUS EQUALS NUMBER:code SEMI
     {: RESULT=new AssertStmt("status", null, code, false); :}
+    | EXPECT STATUS IN NUMBER:start DOTDOT NUMBER:end SEMI
+    {: RESULT=new AssertStmt("status_range", null, start + ".." + end, false); :}
     | EXPECT HEADER STRING:key EQUALS STRING:val SEMI
     {: RESULT=new AssertStmt("header", key, val, false); :}
     | EXPECT HEADER STRING:key CONTAINS STRING:val SEMI
