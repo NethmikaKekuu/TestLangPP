@@ -113,17 +113,41 @@ statement ::= request_stmt:req {: RESULT=req; :}
 
 request_stmt ::= GET STRING:path SEMI
                  {: RESULT=new RequestStmt("GET", path, new ArrayList<>(), null); :}
+               | GET STRING:path error:e
+                 {:
+                     System.err.println("Line " + (eleft + 1) + ": expected ';' after request");
+                     parser.report_fatal_error("", null);
+                     RESULT = null;
+                 :}
                | DELETE STRING:path SEMI
                  {: RESULT=new RequestStmt("DELETE", path, new ArrayList<>(), null); :}
+               | DELETE STRING:path error:e
+                 {:
+                     System.err.println("Line " + (eleft + 1) + ": expected ';' after request");
+                     parser.report_fatal_error("", null);
+                     RESULT = null;
+                 :}
                | POST STRING:path LBRACE header_stmts:headers body_stmt:body RBRACE
                  {: RESULT=new RequestStmt("POST", path, headers, body); :}
                | PUT STRING:path LBRACE header_stmts:headers body_stmt:body RBRACE
                  {: RESULT=new RequestStmt("PUT", path, headers, body); :}
                | POST STRING:path SEMI
                  {: RESULT=new RequestStmt("POST", path, new ArrayList<>(), null); :}
+               | POST STRING:path error:e
+                 {:
+                     System.err.println("Line " + (eleft + 1) + ": expected ';' after request");
+                     parser.report_fatal_error("", null);
+                     RESULT = null;
+                 :}
                | PUT STRING:path SEMI
-                 {: RESULT=new RequestStmt("PUT", path, new ArrayList<>(), null); :};
-
+                 {: RESULT=new RequestStmt("PUT", path, new ArrayList<>(), null); :}
+               | PUT STRING:path error:e
+                 {:
+                     System.err.println("Line " + (eleft + 1) + ": expected ';' after request");
+                     parser.report_fatal_error("", null);
+                     RESULT = null;
+                 :};
+                 
 header_stmts ::= header_stmts:list header_stmt:stmt
     {: list.add(stmt); RESULT=list; :}
     | /* empty */ {: RESULT=new ArrayList<HeaderStmt>(); :};
