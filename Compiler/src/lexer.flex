@@ -63,3 +63,12 @@ ESCAPE_SEQ = \\[\"\\]
 
 /* Error fallback */
 . { System.err.println("Illegal char: '" + yytext() + "' at line " + (yyline+1)); return symbol(sym.error); }
+
+/* Triple-quoted multiline strings */
+\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*\"\"\" {
+    String raw = yytext();
+    String content = raw.substring(3, raw.length()-3)
+                       .replace("\\\"", "\"")
+                       .replace("\\\\", "\\");
+    return symbol(sym.STRING, content);
+}
