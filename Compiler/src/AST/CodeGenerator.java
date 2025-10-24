@@ -173,6 +173,17 @@ public class CodeGenerator {
                 out.println("        assertEquals(" + assertion.value + ", resp.statusCode());");
                 break;
 
+            case "status_range":
+                // Parse range "200..299"
+                String[] parts = assertion.value.split("\\.\\.");
+                String start = parts[0];
+                String end = parts[1];
+                out.println("        assertTrue(resp.statusCode() >= " + start +
+                        " && resp.statusCode() <= " + end +
+                        ", \"Status \" + resp.statusCode() + \" not in range " +
+                        start + ".." + end + "\");");
+                break;
+
             case "header":
                 String headerKey = escapeJavaString(assertion.key);
                 String headerValue = escapeJavaString(substituteVariables(assertion.value));
