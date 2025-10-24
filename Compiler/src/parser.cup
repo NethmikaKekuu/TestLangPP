@@ -20,7 +20,7 @@ terminal LBRACE, RBRACE, SEMI, EQUALS;
 terminal IN, DOTDOT;
 
 non terminal Program program;
-non terminal ConfigBlock config_block_opt;
+non terminal ConfigBlock config_block;
 non terminal List<LetStmt> let_stmts;
 non terminal LetStmt let_stmt;
 non terminal List<TestBlock> test_blocks;
@@ -28,27 +28,25 @@ non terminal TestBlock test_block;
 non terminal List<Statement> statements;
 non terminal Statement statement;
 non terminal RequestStmt request_stmt;
-non terminal List<HeaderStmt> header_stmts_opt;
+non terminal List<HeaderStmt> header_stmts;
 non terminal HeaderStmt header_stmt;
-non terminal BodyStmt body_stmt_opt;
+non terminal BodyStmt body_stmt;
 non terminal AssertStmt assertion;
 non terminal List<ConfigItem> config_items;
 non terminal ConfigItem config_item;
 
-program ::= config_block_opt:c let_stmts:l test_blocks:t
+program ::= config_block:c let_stmts:l test_blocks:t
     {:
-       // Check for duplicate variable names
        Set<String> names = new HashSet<>();
        for (LetStmt let : l) {
            if (!names.add(let.name)) {
-               String msg = "Duplicate variable '" + let.name + "'";
-               throw new RuntimeException(msg);
+               throw new RuntimeException("Duplicate variable '" + let.name + "'");
            }
        }
        RESULT = new Program(c, l, t);
     :};
 
-config_block_opt ::= CONFIG LBRACE config_items:items RBRACE
+config_block ::= CONFIG LBRACE config_items:items RBRACE
     {: RESULT = new ConfigBlock(items); :}
     | /* empty */
     {: RESULT = null; :};
@@ -90,26 +88,26 @@ statement ::= request_stmt:req {: RESULT=req; :}
             | assertion:ast {: RESULT=ast; :};
 
 request_stmt ::= GET STRING:path SEMI
-                 {: RESULT=new RequestStmt("GET",path,new ArrayList<>(),null); :}
-                 | DELETE STRING:path SEMI
-                 {: RESULT=new RequestStmt("DELETE",path,new ArrayList<>(),null); :}
-                 | POST STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
-                 {: RESULT=new RequestStmt("POST",path,headers,body); :}
-                 | PUT STRING:path LBRACE header_stmts_opt:headers body_stmt_opt:body RBRACE
-                 {: RESULT=new RequestStmt("PUT",path,headers,body); :}
-                 | POST STRING:path SEMI
-                 {: RESULT=new RequestStmt("POST",path,new ArrayList<>(),null); :}
-                 | PUT STRING:path SEMI
-                 {: RESULT=new RequestStmt("PUT",path,new ArrayList<>(),null); :};
+                 {: RESULT=new RequestStmt("GET", path, new ArrayList<>(), null); :}
+               | DELETE STRING:path SEMI
+                 {: RESULT=new RequestStmt("DELETE", path, new ArrayList<>(), null); :}
+               | POST STRING:path LBRACE header_stmts:headers body_stmt:body RBRACE
+                 {: RESULT=new RequestStmt("POST", path, headers, body); :}
+               | PUT STRING:path LBRACE header_stmts:headers body_stmt:body RBRACE
+                 {: RESULT=new RequestStmt("PUT", path, headers, body); :}
+               | POST STRING:path SEMI
+                 {: RESULT=new RequestStmt("POST", path, new ArrayList<>(), null); :}
+               | PUT STRING:path SEMI
+                 {: RESULT=new RequestStmt("PUT", path, new ArrayList<>(), null); :};
 
-header_stmts_opt ::= header_stmts_opt:list header_stmt:stmt
+header_stmts ::= header_stmts:list header_stmt:stmt
     {: list.add(stmt); RESULT=list; :}
     | /* empty */ {: RESULT=new ArrayList<HeaderStmt>(); :};
 
 header_stmt ::= HEADER STRING:key EQUALS STRING:val SEMI
-    {: RESULT=new HeaderStmt(key,val); :};
+    {: RESULT=new HeaderStmt(key, val); :};
 
-body_stmt_opt ::= BODY EQUALS STRING:content SEMI
+body_stmt ::= BODY EQUALS STRING:content SEMI
     {: RESULT=new BodyStmt(content); :}
     | /* empty */ {: RESULT=null; :};
 

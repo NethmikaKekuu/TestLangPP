@@ -10,6 +10,7 @@ public class sym {
   public static final int IDENT = 2;
   public static final int RBRACE = 19;
   public static final int TEST = 9;
+  public static final int IN = 22;
   public static final int SEMI = 20;
   public static final int STATUS = 15;
   public static final int EXPECT = 14;
@@ -20,6 +21,7 @@ public class sym {
   public static final int STRING = 3;
   public static final int EOF = 0;
   public static final int NUMBER = 4;
+  public static final int DOTDOT = 23;
   public static final int error = 1;
   public static final int LET = 8;
   public static final int BODY = 16;
@@ -50,7 +52,9 @@ public class sym {
   "LBRACE",
   "RBRACE",
   "SEMI",
-  "EQUALS"
+  "EQUALS",
+  "IN",
+  "DOTDOT"
   };
 }
 

@@ -1,8 +1,11 @@
+chcp 65001 >nul
+
 @echo off
 REM ============================================
 REM TestLangPP Compiler - Compile and Run Tests
 REM ============================================
 
+REM Check input argument
 if "%1"=="" (
     echo Usage: compile.bat ^<test-file^>
     echo.
