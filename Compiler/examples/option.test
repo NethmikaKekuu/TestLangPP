@@ -1,0 +1,57 @@
+config {
+  base_url = "http://localhost:8080";
+  header "Content-Type" = "application/json";
+}
+
+let userId = "42";
+
+// Bonus Feature 1: Triple-quoted multiline strings
+test LoginMultiline {
+  POST "/api/login" {
+    body = """
+    {
+      "username": "admin",
+      "password": "1234",
+      "remember": true,
+      "deviceInfo": {
+        "browser": "Chrome",
+        "os": "Windows"
+      }
+    }
+    """;
+  }
+  expect status = 200;
+  expect body contains "token";
+}
+
+// Bonus Feature 2: Status range check
+test SuccessRange {
+  GET "/api/users/$userId";
+  expect status in 200..299;
+  expect body contains "user";
+}
+
+test AnySuccess {
+  GET "/api/health";
+  expect status in 200..299;
+  expect body contains "status";
+}
+
+// Combined: Both features together
+test UpdateWithMultilineBody {
+  PUT "/api/users/$userId" {
+    body = """
+    {
+      "role": "ADMIN",
+      "permissions": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "active": true
+    }
+    """;
+  }
+  expect status in 200..299;
+  expect body contains "updated";
+}
