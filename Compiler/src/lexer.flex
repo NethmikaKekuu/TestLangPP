@@ -40,7 +40,8 @@ ESCAPE_SEQ = \\[\"\\]
 "status"      { return symbol(sym.STATUS); }
 "body"        { return symbol(sym.BODY); }
 "contains"    { return symbol(sym.CONTAINS); }
-
+"in"          { return symbol(sym.IN); }
+".."          { return symbol(sym.DOTDOT); }
 /* Punctuation */
 "{"           { return symbol(sym.LBRACE); }
 "}"           { return symbol(sym.RBRACE); }
