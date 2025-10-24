@@ -1,3 +1,5 @@
+chcp 65001 >nul
+
 @echo off
 REM ============================================
 REM TestLangPP Compiler - Full Build Script
