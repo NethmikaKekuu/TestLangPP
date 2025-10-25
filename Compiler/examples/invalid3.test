@@ -7,7 +7,3 @@ test InvalidStatus {
   expect status = "200";
 }
 
-test MissingSemicolon {
-  GET "/z"
-  expect status = 200;
-}

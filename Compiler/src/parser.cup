@@ -147,7 +147,7 @@ request_stmt ::= GET STRING:path SEMI
                      parser.report_fatal_error("", null);
                      RESULT = null;
                  :};
-                 
+
 header_stmts ::= header_stmts:list header_stmt:stmt
     {: list.add(stmt); RESULT=list; :}
     | /* empty */ {: RESULT=new ArrayList<HeaderStmt>(); :};

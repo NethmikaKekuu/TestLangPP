@@ -5,8 +5,6 @@ import AST.*;
 public class TestParser {
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.err.println("Usage: java TestParser <file.test> [output.java]");
-            System.err.println("Example: java TestParser examples/given.test");
             System.err.println("Default output: output/GeneratedTests.java");
             return;
         }
@@ -42,7 +40,7 @@ public class TestParser {
 
             Program program = (Program) result.value;
 
-            System.out.println("✓ Parse successful!");
+            System.out.println("  Parse successful!");
             System.out.println("  Config: " + (program.config != null ? "present" : "none"));
             System.out.println("  Variables: " + program.variables.size());
             System.out.println("  Tests: " + program.tests.size());
