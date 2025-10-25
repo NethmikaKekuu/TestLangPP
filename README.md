@@ -49,9 +49,9 @@ compile.bat examples\invalid2.test
 compile.bat examples\invalid3.test       
 compile.bat examples\invalid4.test
 
-all_methods.test -> **POST CreateUser**: Posts JSON to `/api/users` and checks that status is                       201 and the body contains `"success"`;
-                    **GET GetUser**: Gets `/api/users/42` and checks that status is 200 and the                     body contains `"id": 42`; **PUT UpdateUser**: Puts JSON to `/api/users/42`                      and checks that status is 200, headers `"X-App"` and `"Content-Type"` are                       correct, and the body contains `"updated": true` and `"role": "ADMIN"`;                         **DELETE DeleteUser**: Deletes `/api/users/42` and checks that status is                        200 and the body contains `"deleted": true"`
-given.test -> **POST /api/login**: Logs in by posting credentials and checks status 200, JSON                 headers, and token;
+all_methods.test -> **POST CreateUser**: Posts to `/api/users` and checks that status is                            201 and the body contains `"success"`;
+                    **GET GetUser**: Gets `/api/users/42` and checks that status is 200 and the                     body contains `"id": 42`; **PUT UpdateUser**: Puts to `/api/users/42`                           and checks that status is 200, headers `"X-App"` and `"Content-Type"` are                       correct, and the body contains `"updated": true` and `"role": "ADMIN"`;                         **DELETE DeleteUser**: Deletes `/api/users/42` and checks that status is                        200 and the body contains `"deleted": true"`
+given.test -> **POST /api/login**: Logs in by posting credentials and checks status 200,                      headers, and token;
               **GET /api/users/42**: Retrieves a user and checks status 200 and the correct                   user ID
 invalid.test -> **LET invalid variable**: Declares `let 2a = "x";` which is invalid because                     variable names cannot start with a digit
 invalid2.test -> **POST /x**: Tests a request with a numeric body instead of a string, which is                  invalid, expecting status 200 and `"ok"` in the body
@@ -141,14 +141,25 @@ Compiler/
 │   ├── sym.java                # Generated (Step 2)
 │   ├── TestParser.java         # Main Class
 │   └── AST/
-│       └── *.java              # Supporting classes
+│       └── AssertStmt.java
+|       └── BodyStmt.java
+|       └── CodeGenerator.java
+|       └── ConfigBlock.java
+|       └── ConfigItem.java
+|       └── HeaderStmt.java
+|       └── LetStmt.java
+|       └── Program.java
+|       └── RequestStmt.java
+|       └── Statement.java
+|       └── TestBlock.java           
+|      
 ├── ClassLib/
 │   ├── Lexer.class             # Compiled .class
 │   ├── Parser.class            # Compiled .class
 │   ├── sym.class               # Compiled .class
 │   ├── TestParser.class        # Compiled .class
 │   └── AST/
-│       └── *.class             # Compiled
+│       └── *.class             # Compiled classes of all AST nodes
 └── output/
     ├── GeneratedTests.java     # Generated from .test
     └── GeneratedTests.class    # Compiled JUnit test
@@ -263,24 +274,38 @@ java -jar TestLangPP-Backend\target\testlang-backend-0.0.1-SNAPSHOT.jar
 
 ### Create a Simple Test File
 
-Create `examples\test_build.test`:
+Create `examples\given.test`:
 
 ```
 config {
   base_url = "http://localhost:8080";
+  header "Content-Type" = "application/json";
 }
 
-test SimpleGet {
-  GET "/api/users/1";
+// variables
+let user = "admin";
+let id = 42;
+
+test Login {
+  POST "/api/login" {
+    body = "{ \"username\": \"$user\", \"password\": \"1234\" }";
+  }
   expect status = 200;
-  expect body contains "id";
+  expect header "Content-Type" contains "json";
+  expect body contains "\"token\":";
+}
+
+test GetUser {
+  GET "/api/users/$id";
+  expect status = 200;
+  expect body contains "\"id\": 42";
 }
 ```
 
 ### Compile and Run
 
 ```batch
-compile.bat examples\test_build.test
+compile.bat examples\given.test
 ```
 
 ### Expected Output
