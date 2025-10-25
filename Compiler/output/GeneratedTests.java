@@ -7,82 +7,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class GeneratedTests {
-    static String BASE = "http://localhost:8080";
+    static String BASE = "";
     static Map<String,String> DEFAULT_HEADERS = new HashMap<>();
     static HttpClient client;
 
     @BeforeAll
     static void setup() {
         client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-        DEFAULT_HEADERS.put("Content-Type", "application/json");
-        DEFAULT_HEADERS.put("X-App", "TestLangDemo");
     }
 
     @Test
-    void test_Login() throws Exception {
-        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/login"))
-            .timeout(Duration.ofSeconds(10))
-            .POST(HttpRequest.BodyPublishers.ofString("{ \"username\": \"admin\", \"password\": \"1234\" }"));
-        for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
-        HttpResponse<String> resp = client.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        assertEquals(200, resp.statusCode());
-        assertTrue(resp.headers().firstValue("Content-Type").orElse("").contains("json"));
-        assertTrue(resp.body().contains("\"token\":"));
-    }
-
-    @Test
-    void test_CreateUser() throws Exception {
-        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/users"))
-            .timeout(Duration.ofSeconds(10))
-            .POST(HttpRequest.BodyPublishers.ofString("{ \"id\": \"42\", \"name\": \"Test User\", \"email\": \"test@example.com\", \"role\": \"user\" }"));
-        for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
-        HttpResponse<String> resp = client.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        assertEquals(201, resp.statusCode());
-        assertTrue(resp.body().contains("success"));
-    }
-
-    @Test
-    void test_GetUser() throws Exception {
-        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/users/42"))
+    void test_simple() throws Exception {
+        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/test"))
             .timeout(Duration.ofSeconds(10))
             .GET();
         for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
         HttpResponse<String> resp = client.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
         assertEquals(200, resp.statusCode());
-        assertTrue(resp.headers().firstValue("Content-Type").orElse("").contains("json"));
-        assertTrue(resp.body().contains("\"id\": 42"));
-    }
-
-    @Test
-    void test_UpdateUser() throws Exception {
-        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/users/42"))
-            .timeout(Duration.ofSeconds(10))
-            .PUT(HttpRequest.BodyPublishers.ofString("{ \"role\": \"ADMIN\" }"));
-        for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
-        b.header("Content-Type", "application/json");
-        HttpResponse<String> resp = client.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        assertEquals(200, resp.statusCode());
-        assertEquals("TestLangDemo", resp.headers().firstValue("X-App").orElse(""));
-        assertTrue(resp.headers().firstValue("Content-Type").orElse("").contains("json"));
-        assertTrue(resp.body().contains("\"updated\": true"));
-        assertTrue(resp.body().contains("\"role\": \"ADMIN\""));
-    }
-
-    @Test
-    void test_DeleteUser() throws Exception {
-        HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/users/42"))
-            .timeout(Duration.ofSeconds(10))
-            .DELETE();
-        for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
-        HttpResponse<String> resp = client.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        assertEquals(200, resp.statusCode());
-        assertTrue(resp.headers().firstValue("Content-Type").orElse("").contains("json"));
-        assertTrue(resp.body().contains("\"deleted\": true"));
+        assertTrue(resp.body().contains("ok"));
     }
 
 }

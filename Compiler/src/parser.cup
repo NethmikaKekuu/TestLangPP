@@ -87,12 +87,19 @@ let_stmt ::= LET IDENT:name EQUALS STRING:val SEMI
     {: RESULT = new LetStmt(name, val, false, nameleft); :}
     | LET IDENT:name EQUALS NUMBER:val SEMI
     {: RESULT = new LetStmt(name, val, true, nameleft); :}
-    | LET error:e
+    | LET NUMBER:num IDENT:id EQUALS STRING:val SEMI
     {:
-        System.err.println("Identifier cannot start with a digit");
-        System.err.println("Line " + (eleft + 1) + ": expected IDENT after 'let'");
-        parser.report_fatal_error("", null);
-        RESULT = null;
+        System.err.println("Error: Identifier cannot start with a digit");
+        System.err.println("Line " + (numleft + 1) + ": Variable name '" + num + id + "' is invalid");
+        System.err.println("Expected: IDENT after 'let' (must start with letter or underscore)");
+        RESULT = new LetStmt("error_" + num + id, val, false, numleft);
+    :}
+    | LET NUMBER:num IDENT:id EQUALS NUMBER:val SEMI
+    {:
+        System.err.println("Error: Identifier cannot start with a digit");
+        System.err.println("Line " + (numleft + 1) + ": Variable name '" + num + id + "' is invalid");
+        System.err.println("Expected: IDENT after 'let' (must start with letter or underscore)");
+        RESULT = new LetStmt("error_" + num + id, val, true, numleft);
     :};
 
 test_blocks ::= test_blocks:list test_block:block

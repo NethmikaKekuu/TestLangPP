@@ -1,6 +1,7 @@
-config {
-  base_url = "http://localhost:8080";
-}
-
 let 2a = "x";
 
+test simple {
+  GET "/test";
+  expect status = 200;
+  expect body contains "ok";
+}
