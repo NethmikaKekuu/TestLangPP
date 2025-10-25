@@ -46,20 +46,22 @@ compile.bat examples\invalid2.test
 compile.bat examples\invalid3.test       
 compile.bat examples\invalid4.test
 
-all_methods.test -> **POST CreateUser**: Posts to `/api/users` and checks that status is                            201 and the body contains `"success"`;
-                    **GET GetUser**: Gets `/api/users/42` and checks that status is 200 and the                     body contains `"id": 42`; **PUT UpdateUser**: Puts to `/api/users/42`                           and checks that status is 200, headers `"X-App"` and `"Content-Type"` are                       correct, and the body contains `"updated": true` and `"role": "ADMIN"`;                         **DELETE DeleteUser**: Deletes `/api/users/42` and checks that status is                        200 and the body contains `"deleted": true"`
-given.test -> **POST /api/login**: Logs in by posting credentials and checks status 200,                      headers, and token;
-              **GET /api/users/42**: Retrieves a user and checks status 200 and the correct                   user ID
-invalid.test -> **LET invalid variable**: Declares `let 2a = "x";` which is invalid because                     variable names cannot start with a digit
-invalid2.test -> **POST /x**: Tests a request with a numeric body instead of a string, which is                  invalid, expecting status 200 and `"ok"` in the body
-invalid3.test -> **GET /y**: Tests a request expecting status `"200"` as a string, which is                      invalid because status must be an integer
-invalid4.test -> **GET /z**: Tests a request missing a semicolon after the GET statement,                         making it invalid
-optional.test -> **POST LoginMultiline**: Posts a multiline JSON to `/api/login` and checks                      status 200 and that the body contains `"token"`
-                 **GET SuccessRange**: Gets `/api/users/42` and checks status 200–299 and that                   the body contains `"user"`
-                 **GET AnySuccess**: Gets `/api/health` and checks status 200–299 and that the                   body contains `"status"`
-                 **PUT UpdateWithMultilineBody**: Puts a multiline JSON to `/api/users/42` and                   checks status 200–299 and that the body contains `"updated"`
-test_duplicate.test -> **LET DuplicateUserId**: Declares `userId` twice, attempts
-                        **GET /api/users/$userId** and checks status 200 and the body contains                         `"test"`, but it cannot run due to the duplicate variable error
+all_methods.test -> POST CreateUser: Posts to `/api/users` and checks that status is 201 and the body contains `"success"`;
+                    GET GetUser: Gets `/api/users/42` and checks that status is 200 and the body contains `"id": 42`;
+                    PUT UpdateUser: Puts to `/api/users/42`and checks that status is 200, headers `"X-App"` and `"Content-Type"` are correct, and the body contains `"updated":                     true` and `"role": "ADMIN"`;
+                    DELETE DeleteUser: Deletes `/api/users/42` and checks that status is 200 and the body contains `"deleted": true"`
+given.test -> POST /api/login: Logs in by posting credentials and checks status 200, headers, and token;
+              GET /api/users/42: Retrieves a user and checks status 200 and the correct user ID
+invalid.test -> Let invalid variable: Declares `let 2a = "x";` which is invalid because variable names cannot start with a digit
+invalid2.test -> POST /x: Tests a request with a numeric body instead of a string, which is invalid, expecting status 200 and `"ok"` in the body
+invalid3.test -> GET /y: Tests a request expecting status `"200"` as a string, which is invalid because status must be an integer
+invalid4.test -> GET /z: Tests a request missing a semicolon after the GET statement,making it invalid
+optional.test -> POST LoginMultiline: Posts a multiline JSON to `/api/login` and checks status 200 and that the body contains `"token"`
+                 GET SuccessRange: Gets `/api/users/42` and checks status 200–299 and that the body contains `"user"`
+                 GET AnySuccess: Gets `/api/health` and checks status 200–299 and that the body contains `"status"`
+                 PUT UpdateWithMultilineBody: Puts a multiline JSON to `/api/users/42` and checks status 200–299 and that the body contains `"updated"`
+test_duplicate.test -> Let DuplicateUserId: Declares `userId` twice, attempts
+                       GET /api/users/$userId and checks status 200 and the body contains`"test"`, but it cannot run due to the duplicate variable error
 
 ```
 ---
