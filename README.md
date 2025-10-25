@@ -21,6 +21,10 @@ Before compiling, ensure you have:
 ### Option 1: Full Build + Run Test (Recommended)
 
 ```batch
+# Just build the compiler
+build.bat
+```
+```batch
 # Build everything and run a test file
 compile.bat examples\given.test
 ```
