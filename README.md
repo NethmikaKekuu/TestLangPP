@@ -36,13 +36,6 @@ This single command will:
 4. Compile the generated tests
 5. Run the tests with JUnit
 
-### Option 2: Automated using .bat Script 
-
-```batch
-# Just build the compiler
-build.bat
-```
-### 
 ```batch
 compile.bat examples\all_methods.test        
 compile.bat examples\given.test
