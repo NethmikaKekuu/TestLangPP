@@ -64,7 +64,7 @@ test_duplicate.test -> **LET DuplicateUserId**: Declares `userId` twice, attempt
 ```
 ---
 
-## Manual Compilation (Step-by-Step)
+## Option 2: Manual Compilation (Step-by-Step)
 
 If you prefer to understand each step or need to troubleshoot:
 
