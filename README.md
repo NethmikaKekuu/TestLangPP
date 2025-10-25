@@ -1,96 +1,280 @@
-# TestLang++ DSL Compiler
+# TestLangPP IT23657496 Kekulanthale K. M. N. Y
 
-**SE2062 - Individual Assignment**  
-A Domain-Specific Language (DSL) for HTTP API Testing that compiles to JUnit 5 tests.
-
----
-
-## 📋 Overview
-
-TestLang++ is a custom DSL designed for writing HTTP API tests in a clean, readable syntax. The compiler translates `.test` files into executable JUnit 5 test classes that use Java's built-in `HttpClient` to perform real HTTP requests and assertions.
-
-### Key Features
-
-- ✅ **Simple Syntax**: Write API tests without boilerplate Java code
-- ✅ **Variable Substitution**: Define reusable variables for URLs, user IDs, etc.
-- ✅ **HTTP Methods**: Supports GET, POST, PUT, DELETE
-- ✅ **Flexible Assertions**: Check status codes, headers, and response bodies
-- ✅ **JUnit 5 Integration**: Generated tests run with standard JUnit tooling
-- ✅ **No External Dependencies**: Uses only Java 11+ HttpClient
+Complete guide for building and running the TestLang++ DSL compiler.
 
 ---
 
-## 🏗️ Project Structure
+##  Prerequisites
+
+Before compiling, ensure you have:
+
+- **Java 11+** installed and in PATH
+- **JFlex 1.9.1** (in `lib/jflex-full-1.9.1.jar`)
+- **CUP 0.11b** (in `lib/java-cup-11b.jar` and `lib/java-cup-11b-runtime.jar`)
+- **JUnit 5** (in `lib/junit-platform-console-standalone-1.9.3.jar`)
+
+**AND THE DEMO BACKEND ON PORT 8080 ON THE LOCAL HOST SHOULD BE RUNNING**
+---
+
+##  Quick Start (Automated)
+
+### Option 1: Full Build + Run Test (Recommended)
+
+```batch
+# Just build the compiler
+build.bat
+```
+```batch
+# Build everything and run a test file
+compile.bat examples\given.test
+```
+
+This single command will:
+1. Build the compiler (if not already built)
+2. Parse your `.test` file
+3. Generate `GeneratedTests.java`
+4. Compile the generated tests
+5. Run the tests with JUnit
+
+```batch
+compile.bat examples\all_methods.test        
+compile.bat examples\given.test
+compile.bat examples\test_duplicate.test  
+compile.bat examples\optional.test      
+compile.bat examples\invalid.test        
+compile.bat examples\invalid2.test       
+compile.bat examples\invalid3.test       
+compile.bat examples\invalid4.test
+
+all_methods.test -> POST CreateUser: Posts to `/api/users` and checks that status is 201 and the body contains `"success"`;
+                    GET GetUser: Gets `/api/users/42` and checks that status is 200 and the body contains `"id": 42`;
+                    PUT UpdateUser: Puts to `/api/users/42`and checks that status is 200, headers `"X-App"` and `"Content-Type"` are correct, and the body contains `"updated":                     true` and `"role": "ADMIN"`;
+                    DELETE DeleteUser: Deletes `/api/users/42` and checks that status is 200 and the body contains `"deleted": true"`
+given.test -> POST /api/login: Logs in by posting credentials and checks status 200, headers, and token;
+              GET /api/users/42: Retrieves a user and checks status 200 and the correct user ID
+invalid.test -> Let invalid variable: Declares `let 2a = "x";` which is invalid because variable names cannot start with a digit
+invalid2.test -> POST /x: Tests a request with a numeric body instead of a string, which is invalid, expecting status 200 and `"ok"` in the body
+invalid3.test -> GET /y: Tests a request expecting status `"200"` as a string, which is invalid because status must be an integer
+invalid4.test -> GET /z: Tests a request missing a semicolon after the GET statement,making it invalid
+optional.test -> POST LoginMultiline: Posts a multiline to `/api/login` and checks status 200 and that the body contains `"token"`
+                 GET SuccessRange: Gets `/api/users/42` and checks status 200..299 and that the body contains `"user"`
+                 GET AnySuccess: Gets `/api/health` and checks status 200..299 and that the body contains `"status"`
+                 PUT UpdateWithMultilineBody: Puts a multiline to `/api/users/42` and checks status 200..299 and that the body contains `"updated"`
+test_duplicate.test -> Let DuplicateUserId: Declares `userId` twice, attempts
+                       GET /api/users/$userId and checks status 200 and the body contains`"test"`, but it cannot run due to the duplicate variable error
+
+Invalid tests shows the given error messeges
+```
+---
+
+## Option 2: Manual Compilation (Step-by-Step)
+
+If you prefer to understand each step or need to troubleshoot:
+
+### Step 1: Generate Lexer
+
+```batch
+java -jar lib\jflex-full-1.9.1.jar -d src src\lexer.flex
+```
+
+**Output:** `src\Lexer.java`
+
+### Step 2: Generate Parser
+
+```batch
+java -jar lib\java-cup-11b.jar -destdir src -parser Parser -symbols sym src\parser.cup
+```
+
+**Output:** 
+- `src\Parser.java`
+- `src\sym.java`
+
+### Step 3: Compile AST Classes
+
+```batch
+javac -d ClassLib -cp lib\java-cup-11b-runtime.jar src\AST\*.java
+```
+
+**Output:** `ClassLib\AST\*.class` files
+
+### Step 4: Compile Main Classes
+
+```batch
+javac -cp "ClassLib;lib\java-cup-11b-runtime.jar" -d ClassLib src\*.java
+```
+
+**Output:** All `.class` files in `ClassLib\`
+
+### Step 5: Run Parser on Test File
+
+```batch
+java -cp "ClassLib;lib\java-cup-11b-runtime.jar" TestParser examples\given.test
+```
+
+**Output:** `output\GeneratedTests.java`
+
+### Step 6: Compile Generated Tests
+
+```batch
+javac -cp lib\junit-platform-console-standalone-1.9.3.jar -d output output\GeneratedTests.java
+```
+
+**Output:** `output\GeneratedTests.class`
+
+### Step 7: Run Tests
+
+```batch
+java -jar lib\junit-platform-console-standalone-1.9.3.jar --class-path output --scan-classpath --disable-banner
+```
+
+---
+
+##  Directory Structure After Compilation
 
 ```
-TestLangPP-Compiler/
+Compiler/
 ├── src/
-│   ├── lexer.flex              # JFlex lexer specification
-│   ├── parser.cup              # CUP parser specification
-│   ├── TestParser.java         # Main compiler driver
-│   └── AST/                    # Abstract Syntax Tree classes
-│       ├── Program.java
-│       ├── TestBlock.java
-│       ├── RequestStmt.java
-│       ├── AssertStmt.java
-│       ├── ConfigBlock.java
-│       ├── LetStmt.java
-│       ├── HeaderStmt.java
-│       ├── BodyStmt.java
-│       ├── ConfigItem.java
-│       └── CodeGenerator.java  # JUnit code generator
-├── lib/
-│   ├── jflex-full-1.9.1.jar
-│   ├── java-cup-11b.jar
-│   ├── java-cup-11b-runtime.jar
-│   └── junit-platform-console-standalone-1.9.3.jar
-├── examples/
-│   ├── given.test              # Example test file
-│   └── multi_users.test        # Multiple user tests
-├── output/
-│   └── GeneratedTests.java     # Generated JUnit test class
-├── ClassLib/                   # Compiled .class files
-├── build.bat                   # Build script
-├── compile.bat                 # Compile & run script
-└── README.md
-
-TestLangPP-Backend/
+│   ├── lexer.flex              # Flexer
+│   ├── parser.cup              # Grammer
+│   ├── Lexer.java              # Generated (Step 1)
+│   ├── Parser.java             # Generated (Step 2)
+│   ├── sym.java                # Generated (Step 2)
+│   ├── TestParser.java         # Main Class
+│   └── AST/
+│       └── AssertStmt.java
+|       └── BodyStmt.java
+|       └── CodeGenerator.java
+|       └── ConfigBlock.java
+|       └── ConfigItem.java
+|       └── HeaderStmt.java
+|       └── LetStmt.java
+|       └── Program.java
+|       └── RequestStmt.java
+|       └── Statement.java
+|       └── TestBlock.java           
+|      
+├── ClassLib/
+│   ├── Lexer.class             # Compiled .class
+│   ├── Parser.class            # Compiled .class
+│   ├── sym.class               # Compiled .class
+│   ├── TestParser.class        # Compiled .class
+│   └── AST/
+│       └── *.class             # Compiled classes of all AST nodes
+└── output/
+    ├── GeneratedTests.java     # Generated from .test
+    └── GeneratedTests.class    # Compiled JUnit test
+```
+```
+Backend/
 ├── src/
 │   └── main/java/com/testlang/backend/
-│       └── TestLangBackendApplication.java
+|       └── config
+|       |    └── WebConfig
+│       └── controller
+|       |    └── AuthController #POST Requests
+|       |    └── HealthController #GET Requests
+|       |    └── UserController  #DELETE and PUT Requests
+|       └── model
+|       |    └── ApiResponse
+|       |    └── LoginRequest
+|       |    └── LoginResponse
+|       |    └── User
+|       └── BackendApplication.java
 ├── pom.xml
-├── README.md
 └── target/
     └── testlang-backend-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-## 🚀 Quick Start
+##  Compilation Workflow Diagram
 
-### Prerequisites
+```
+lexer.flex ──[JFlex]──> Lexer.java
+parser.cup ──[CUP]───> Parser.java + sym.java
+                         │
+AST/*.java ──[javac]──> ClassLib/AST/*.class
+                         │
+*.java ─────[javac]──> ClassLib/*.class
+                         │
+                    [TestParser]
+                         │
+given.test ────────> output/GeneratedTests.java
+                         │
+                    [javac]
+                         │
+                    GeneratedTests.class
+                         │
+                    [JUnit 5]
+                         │
+                    Test Results
+```
 
-- **Java 11+** (for HttpClient support)
-- **JFlex 1.9.1** (included in `lib/`)
-- **CUP 0.11b** (included in `lib/`)
-- **JUnit 5** (included in `lib/`)
-- **Backend Server** running on `http://localhost:8080` (for testing)
+---
 
-### 1. Build the Compiler
+##  Troubleshooting
 
+### Error: "Class not found"
+
+**Solution:** Rebuild from scratch
 ```batch
 build.bat
 ```
 
-This will:
-- Generate lexer from `lexer.flex`
-- Generate parser from `parser.cup`
-- Compile all AST classes
-- Compile the main compiler
+### Error: "Cannot find symbol: sym"
 
-### 2. Write a Test File
+**Problem:** Parser not generated
 
-Create `examples/my_test.test`:
+**Solution:** 
+```batch
+java -jar lib\java-cup-11b.jar -destdir src -parser Parser -symbols sym src\parser.cup
+```
+
+### Error: "Lexer.java not found"
+
+**Problem:** Lexer not generated
+
+**Solution:**
+```batch
+java -jar lib\jflex-full-1.9.1.jar -d src src\lexer.flex
+```
+
+### Error: "Line N: expected ';' after request"
+
+**Problem:** Syntax error in your `.test` file
+
+**Example:**
+```
+// Wrong
+GET "/api/users" expect status = 200;
+
+// Correct
+GET "/api/users";
+expect status = 200;
+```
+
+### Error: Tests fail with "Connection refused"
+
+**Problem:** Backend server not running
+
+**Solution:**
+```batch
+cd TestLangPP-Backend
+mvn spring-boot:run
+```
+
+Or run the JAR:
+```batch
+java -jar TestLangPP-Backend\target\testlang-backend-0.0.1-SNAPSHOT.jar
+```
+
+---
+
+##  Testing Your Build
+
+### Create a Simple Test File
+
+Create `examples\given.test`:
 
 ```
 config {
@@ -98,6 +282,7 @@ config {
   header "Content-Type" = "application/json";
 }
 
+// variables
 let user = "admin";
 let id = 42;
 
@@ -106,6 +291,7 @@ test Login {
     body = "{ \"username\": \"$user\", \"password\": \"1234\" }";
   }
   expect status = 200;
+  expect header "Content-Type" contains "json";
   expect body contains "\"token\":";
 }
 
@@ -116,349 +302,184 @@ test GetUser {
 }
 ```
 
-### 3. Compile and Run
-
-**Option A: Using compile.bat (Automated)**
+### Compile and Run
 
 ```batch
-compile.bat examples/my_test.test
+compile.bat examples\given.test
 ```
 
-**Option B: Manual Steps**
+### Expected Output
+
+```
+========================================
+TestLangPP - Compile Test File
+========================================
+
+Input: examples\test_build.test
+
+========================================
+[1/3] Parsing and generating code...
+========================================
+
+✓ Parse successful!
+  Config: present
+  Variables: 0
+  Tests: 1
+✓ Validation passed!
+Generated: output\GeneratedTests.java
+✓ Code generation complete!
+
+Generated file: output\GeneratedTests.java
+[OK] Code generated
+
+========================================
+[2/3] Compiling generated tests...
+========================================
+
+[OK] Generated tests compiled successfully
+
+========================================
+[3/3] Running tests...
+========================================
+
+NOTE: Make sure your API server is running!
+      Default: http://localhost:8080
+----------------------------------------
+
+Test run finished after 523 ms
+[         1 containers found      ]
+[         0 containers skipped    ]
+[         1 containers started    ]
+[         0 containers aborted    ]
+[         1 containers successful ]
+[         0 containers failed     ]
+[         1 tests found           ]
+[         0 tests skipped         ]
+[         1 tests started         ]
+[         0 tests aborted         ]
+[         1 tests successful      ]
+[         0 tests failed          ]
+
+========================================
+Test execution complete!
+========================================
+```
+
+---
+
+##  Common Commands Reference
+
+| Task | Command |
+|------|---------|
+| Full build from scratch | `build.bat` |
+| Compile and run test | `compile.bat examples\given.test` |
+| Clean build | Delete `ClassLib\*` and `output\*`, then `build.bat` |
+| Start backend server | `cd TestLangPP-Backend && mvn spring-boot:run` |
+| View generated code | `type output\GeneratedTests.java` |
+| Run only JUnit tests | `java -jar lib\junit-platform-console-standalone-1.9.3.jar --class-path output --scan-classpath` |
+
+---
+
+##  Environment Variables (Optional)
+
+For easier access, you can set:
 
 ```batch
-# Step 1: Parse and generate JUnit code
-java -cp "ClassLib;lib\java-cup-11b-runtime.jar" TestParser examples/my_test.test
-
-# Step 2: Compile generated tests
-javac -cp "lib\junit-platform-console-standalone-1.9.3.jar" -d output output\GeneratedTests.java
-
-# Step 3: Run tests
-java -cp "output;lib\junit-platform-console-standalone-1.9.3.jar" org.junit.platform.console.ConsoleLauncher -c GeneratedTests
+set CLASSPATH=ClassLib;lib\java-cup-11b-runtime.jar
+set JUNIT_JAR=lib\junit-platform-console-standalone-1.9.3.jar
 ```
 
----
-
-## 📖 Language Reference
-
-### File Structure
-
-```
-[config block]    # Optional: base URL and default headers
-[let statements]  # Optional: variable declarations
-test blocks       # Required: at least one test
-```
-
-### Config Block (Optional)
-
-```
-config {
-  base_url = "http://localhost:8080";
-  header "Content-Type" = "application/json";
-  header "Authorization" = "Bearer token123";
-}
-```
-
-### Variable Declarations
-
-```
-let username = "admin";          // String variable
-let userId = 42;                 // Integer variable
-```
-
-Variables are substituted using `$variableName` syntax in strings and paths.
-
-### Test Blocks
-
-```
-test TestName {
-  [HTTP request]
-  [assertions]
-  ...
-}
-```
-
-**Requirements:**
-- Each test must have **≥1 HTTP request**
-- Each test must have **≥2 assertions**
-
-### HTTP Requests
-
-#### GET/DELETE (Simple)
-```
-GET "/api/users/42";
-DELETE "/api/users/42";
-```
-
-#### POST/PUT (With Body)
-```
-POST "/api/login" {
-  header "Content-Type" = "application/json";
-  body = "{ \"username\": \"admin\", \"password\": \"1234\" }";
-}
-
-PUT "/api/users/$id" {
-  body = "{ \"role\": \"ADMIN\" }";
-}
-```
-
-### Assertions
-
-```
-expect status = 200;                              // Status code equals
-expect header "Content-Type" = "application/json"; // Header equals
-expect header "Content-Type" contains "json";      // Header contains
-expect body contains "\"token\":";                 // Body contains
-```
-
-### Comments
-
-```
-// This is a line comment
-let id = 42;  // Comments can appear after statements
-```
-
----
-
-## 🔧 Backend Server
-
-A Spring Boot backend is provided to test against. It provides:
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/login` | POST | User login, returns token |
-| `/api/users/{id}` | GET | Get user by ID |
-| `/api/users/{id}` | PUT | Update user |
-| `/api/users/{id}` | DELETE | Delete user |
-
-### Starting the Backend
-
+Then commands become shorter:
 ```batch
-cd TestLangPP-Backend
-mvn spring-boot:run
+java TestParser examples\given.test
+javac -cp %JUNIT_JAR% -d output output\GeneratedTests.java
 ```
 
-Or:
+---
 
+##  Incremental Compilation
+
+If you only modify:
+
+### Just the `.test` file
 ```batch
-java -jar target/TestLangPP-0.0.1-SNAPSHOT.jar
+java -cp "ClassLib;lib\java-cup-11b-runtime.jar" TestParser examples\given.test
+javac -cp lib\junit-platform-console-standalone-1.9.3.jar -d output output\GeneratedTests.java
 ```
 
-The server runs on `http://localhost:8080`
-
----
-
-## 📝 Example Test Files
-
-### Example 1: Basic Authentication Test
-
-```
-config {
-  base_url = "http://localhost:8080";
-}
-
-let user = "admin";
-
-test Login {
-  POST "/api/login" {
-    body = "{ \"username\": \"$user\", \"password\": \"1234\" }";
-  }
-  expect status = 200;
-  expect body contains "token";
-}
-```
-
-### Example 2: Multiple Users
-
-```
-config {
-  base_url = "http://localhost:8080";
-}
-
-let userId1 = "42";
-let userId2 = "100";
-
-test User42 {
-  GET "/api/users/$userId1";
-  expect status = 200;
-  expect body contains "\"id\": 42";
-}
-
-test User100 {
-  GET "/api/users/$userId2";
-  expect status = 200;
-  expect body contains "\"id\": 100";
-}
-```
-
-### Example 3: Update Operation
-
-```
-config {
-  base_url = "http://localhost:8080";
-  header "Content-Type" = "application/json";
-}
-
-let userId = "42";
-
-test UpdateUser {
-  PUT "/api/users/$userId" {
-    body = "{ \"role\": \"ADMIN\" }";
-  }
-  expect status = 200;
-  expect header "Content-Type" contains "json";
-  expect body contains "\"updated\": true";
-}
-```
-
----
-
-## 🧪 Generated Code Example
-
-**Input (TestLang++):**
-
-```
-test Login {
-  POST "/api/login" {
-    body = "{ \"username\": \"admin\" }";
-  }
-  expect status = 200;
-  expect body contains "token";
-}
-```
-
-**Output (JUnit 5):**
-
-```java
-@Test
-void test_Login() throws Exception {
-    HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(BASE + "/api/login"))
-        .timeout(Duration.ofSeconds(10))
-        .POST(HttpRequest.BodyPublishers.ofString("{ \"username\": \"admin\" }"));
-    for (var e : DEFAULT_HEADERS.entrySet()) b.header(e.getKey(), e.getValue());
-    HttpResponse<String> resp = client.send(b.build(), 
-        HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-    assertEquals(200, resp.statusCode());
-    assertTrue(resp.body().contains("token"));
-}
-```
-
----
-
-## ❌ Error Handling
-
-The compiler provides clear error messages:
-
-### Syntax Errors
-
-```
-Syntax error at line 14, near 'null'
-Expected ';' after request statement
-```
-
-### Semantic Errors
-
-```
-Test 'Login' must have at least 2 assertions
-Duplicate variable 'user'
-```
-
-### Invalid Constructs
-
-| Error | Reason |
-|-------|--------|
-| `let 2a = "x";` | Identifier cannot start with digit |
-| `expect status = "200";` | Status must be integer, not string |
-| `POST "/x" { body = 123; }` | Body must be string |
-
----
-
-## 🎯 Implementation Details
-
-### Compiler Pipeline
-
-```
-.test file
-    ↓
-[Lexer] → Tokens
-    ↓
-[Parser] → AST
-    ↓
-[Validator] → Semantic checks
-    ↓
-[CodeGenerator] → GeneratedTests.java
-    ↓
-[javac] → .class files
-    ↓
-[JUnit] → Test execution
-```
-
-### Technology Stack
-
-- **JFlex**: Lexical analyzer generator
-- **CUP**: Parser generator (LALR)
-- **Java 11+**: HttpClient for HTTP requests
-- **JUnit 5**: Test framework
-
-### Design Patterns
-
-- **Visitor Pattern**: AST traversal in code generator
-- **Builder Pattern**: HTTP request construction
-- **Factory Pattern**: Symbol and AST node creation
-
-
----
-
-## 🐛 Troubleshooting
-
-### "Class not found" errors
-
+### Just AST classes
 ```batch
-# Rebuild the project
-build.bat
+javac -d ClassLib -cp lib\java-cup-11b-runtime.jar src\AST\*.java
 ```
 
-### "Connection refused" when running tests
+### Just the parser
+```batch
+java -jar lib\java-cup-11b.jar -destdir src -parser Parser -symbols sym src\parser.cup
+javac -cp "ClassLib;lib\java-cup-11b-runtime.jar" -d ClassLib src\Parser.java src\sym.java
+```
 
-- Ensure backend server is running on port 8080
-- Check firewall settings
+### Just the lexer
+```batch
+java -jar lib\jflex-full-1.9.1.jar -d src src\lexer.flex
+javac -cp "ClassLib;lib\java-cup-11b-runtime.jar" -d ClassLib src\Lexer.java
+```
 
-### Tests fail with 404
 
-- Verify backend endpoints match test URLs
-- Check variable substitution is correct
 
-### Parser errors
-
-- Ensure semicolons after GET/DELETE statements
-- Check proper nesting of request blocks
-- Verify all strings use double quotes
-
----
-
-## 📚 References
-
-- [JFlex Documentation](https://jflex.de/manual.html)
-- [CUP Documentation](http://www2.cs.tum.edu/projects/cup/)
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
-- [Java HttpClient](https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.html)
 
 ---
 
-## 👤 Author
+##  Build Script Details
 
-**SE2062 Assignment**  
-Individual Project - TestLang++ DSL Compiler
+### build.bat Flow
+
+1. **Check directories** - Verifies lib/ and src/ exist
+2. **Clean previous builds** - Removes old generated files
+3. **Generate Lexer** - JFlex → Lexer.java
+4. **Generate Parser** - CUP → Parser.java + sym.java
+5. **Compile AST** - javac AST/*.java → ClassLib/AST/
+6. **Compile Main** - javac *.java → ClassLib/
+
+### compile.bat Flow
+
+1. **Check if built** - Calls build.bat if needed
+2. **Verify input** - Checks if .test file exists
+3. **Parse** - Runs TestParser on .test file
+4. **Compile tests** - javac GeneratedTests.java
+5. **Run tests** - JUnit 5 test execution
 
 ---
 
-## 📄 License
+##  Verification Checklist
 
-This project is submitted as part of SE2062 coursework.
+After compilation, verify:
+
+- [ ] `src\Lexer.java` exists
+- [ ] `src\Parser.java` exists
+- [ ] `src\sym.java` exists
+- [ ] `ClassLib\TestParser.class` exists
+- [ ] `ClassLib\AST\` contains multiple .class files
+- [ ] `output\GeneratedTests.java` exists (after parsing)
+- [ ] No compilation errors
+- [ ] Tests run successfully (with backend running)
 
 ---
 
-## 🎓 Academic Integrity
+##  Getting Help
 
-This implementation follows the assignment specification. All work is original except where explicitly cited.
+If you encounter issues:
+
+1. **Check Java version**: `java -version` (should be 11+)
+2. **Verify CLASSPATH**: Make sure paths use semicolons (`;`) on Windows
+3. **Check file paths**: Use backslashes (`\`) on Windows
+4. **Enable debug mode**: Set `DEBUG=1` environment variable
+5. **View full stack trace**: The compiler shows traces in debug mode
+
+---
+
+##  Additional Resources
+
+- JFlex Manual: https://jflex.de/manual.html
+- CUP Manual: http://www2.cs.tum.edu/projects/cup/
+- JUnit 5 Guide: https://junit.org/junit5/docs/current/user-guide/
+
