@@ -1656,30 +1656,10 @@ java -jar lib\junit-platform-console-standalone-1.9.3.jar --class-path output --
 - Test parameterization and data-driven tests
 - Support for authentication tokens and sessions
 
-**Tooling Improvements**:
-- IDE plugins (VS Code, IntelliJ)
-- Syntax highlighting definitions
-- Language Server Protocol (LSP) implementation
-- Interactive debugger for test execution
-
-**Code Generation**:
-- Support for other testing frameworks (TestNG, Spock)
-- Generate test reports in multiple formats
-- Code coverage analysis
-- Performance metrics collection
-
-**Backend Features**:
-- Database persistence
-- Authentication and authorization
-- Rate limiting and throttling
-- WebSocket support
-
 ---
 ### Language Features
 - Additional HTTP methods (PATCH, OPTIONS, HEAD)
-- Authentication schemes (OAuth, JWT, Basic Auth)
 - Response validation (schema validation, regex matching)
-- Test setup and teardown hooks
 
 ### Tooling
 - IDE plugins for syntax highlighting and auto-completion
@@ -1691,11 +1671,6 @@ java -jar lib\junit-platform-console-standalone-1.9.3.jar --class-path output --
 - Interactive playground
 - Translation to other languages
 
-### Testing
-- Additional test cases for edge scenarios
-- Stress testing and performance benchmarks
-- Cross-platform compatibility testing
-- Security vulnerability testing
 ---
 
 ## Academic Context
