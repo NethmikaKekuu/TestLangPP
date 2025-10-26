@@ -889,6 +889,7 @@ TestLangPP-Backend/
 ├── src/main/java/com/testlang/backend/
 │   ├── config/
 │   │   └── WebConfig.java                        # CORS and web configuration
+|   |   └── RequestLoggingFilter.java             # Logs HTTP requests and responses  
 │   │
 │   ├── controller/
 │   │   ├── AuthController.java                   # POST /api/login endpoint
