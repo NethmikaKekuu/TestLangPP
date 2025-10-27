@@ -1711,6 +1711,5 @@ For questions, suggestions, or issues, please contact through the course platfor
 
 **Made with dedication for better API testing**
 
-**Version**: 1.0.0  
-**Last Updated**: 2024  
-**Status**: Active Development
+**Last Updated**: 26/10/2025  
+**Status**: Development Done
