@@ -1,8 +1,5 @@
 # TestLangPP
 
-**IT23657496 - Kekulanthale K. M. N. Y**
-**LINK FOR THE GITHUB REPO**  https://github.com/IT23657496NethmikaKeku/TestLangPP
-
 
 A Domain-Specific Language (DSL) for writing intuitive, declarative HTTP API tests that compile to executable JUnit 5 test suites.
 
